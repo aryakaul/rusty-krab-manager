@@ -1,0 +1,13 @@
+[package]
+name = "rusty-manager"
+version = "0.1.0"
+authors = ["luak <arya_kaul@g.harvard.edu>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rand = "0.7"
+chrono = "0.4"
+tui = "0.5"
+termion = "1.5"
