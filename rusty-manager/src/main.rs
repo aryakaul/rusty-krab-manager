@@ -1,10 +1,10 @@
 use rand::Rng;
-//use std::time::{SystemTime};
-//use chrono::{DateTime, Duration};
 use chrono::prelude::*;
 
-
-
+/* Take a probability distribution and
+ * change it to a cumulative distribution 
+ * where the last element is always 1
+ */
 fn make_cdf(pdf:Vec<f64>) -> Vec::<f64> {
     let sum: f64 = pdf.iter().sum();
     if sum as f32 != 1.0 {
@@ -19,6 +19,10 @@ fn make_cdf(pdf:Vec<f64>) -> Vec::<f64> {
     return cdf
 }
 
+/* Given a probability distribution containing n elements
+ * randomly roll a n-sided die weighted to the probabilities
+ * given. Return the index of the side that comes up.
+ */
 fn roll_die(pdf: Vec<f64>) -> usize {
     let mut rng = rand::thread_rng();
     let x = rng.gen::<f64>();
@@ -46,8 +50,7 @@ fn turn_timetilldue_into_pdf(due: Vec<i64>) -> Vec<f64> {
     return pdf;
 }
 
-/* Define 'Assignment' object
- */
+/* Define 'Assignment' object */
 pub struct Assignment {
     name: String,
     tag: String,
@@ -74,35 +77,34 @@ impl Assignment {
     }
 }
 
-
-/* Read in the list of assignments. Return hash map where 
- * key is the tag, and value is a Vector of Assignments
- */
-
-
-
-/* Get the amount of time until a given assignment is due
- * Get it in minutes
+/* 
+ * Get the amount of time until a given assignment is due in minutes
  */
 fn find_timeuntildue(due_date: DateTime<Local>) -> i64 {
     let curr_local: DateTime<Local> = Local::now(); 
     let duration = due_date.signed_duration_since(curr_local).num_minutes();
-    //println!("{}", duration);
     return duration
 }
 
-
-fn turn_assignmentvector_into_pdf(assign: Vec<Assignment>) -> Vec<f64> {
-    let mut min_till_due: Vec<i64> = Vec::new();
-    for i in 0..assign.len() {
-        min_till_due.push(find_timeuntildue(assign[i].convert_due_date()));
+/* 
+ * Turn a vector containing all assignments, and return a Vec<f64> 
+ * that is your probability density function for each assignment
+ * The index tracks the same assignment
+ */
+fn turn_assignmentvector_into_pdf(assign: Vec<Assignment>, use_due: bool) -> Vec<f64> {
+    if use_due {
+        let mut min_till_due: Vec<i64> = Vec::new();
+        for i in 0..assign.len() {
+            min_till_due.push(find_timeuntildue(assign[i].convert_due_date()));
+        }
+        return turn_timetilldue_into_pdf(min_till_due);
+    } else {
+        let uniform_prob: f64 = 1.0/assign.len() as f64;
+        return vec![uniform_prob; assign.len()];
     }
-    return turn_timetilldue_into_pdf(min_till_due);
 }
 
 fn main() {
-    //let xs: [f64; 2] = [0.3,0.7];
-
     let mut assignments: Vec<Assignment> = Vec::new();
     let bmif_assign = Assignment {
         name: String::from("BMIF Problem Set"),
@@ -118,10 +120,7 @@ fn main() {
         complete: false,
     };
     assignments.push(gen_assign);
-    let x = turn_assignmentvector_into_pdf(assignments);
-    for i in 0..x.len() {
-        println!("{}", x[i]);
-    }
+    let x = turn_assignmentvector_into_pdf(assignments, true);
     println!("{}", roll_die(x));
     //println!("{}", roll_die(pdf));
 }
