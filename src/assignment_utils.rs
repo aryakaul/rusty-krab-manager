@@ -1,15 +1,27 @@
+#[path = "fileops.rs"]
+mod fileops;
+use fileops::lines_from_file;
+
 //
 // THESE ARE ALL FUNCTIONS RELATED TO THE ASSIGNMENT
 // STRUCTURE
 //
 
 use chrono::prelude::*;
+use std::fmt;
+use std::collections::HashMap;
 
 /* Define 'Assignment' object */
 pub struct Assignment {
     pub name: String,
     pub tag: String,
     pub due_time: String,
+}
+
+impl fmt::Display for Assignment {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    write!(f, "({}, {}, {})", self.name, self.tag, self.due_time)
+    }
 }
 
 impl Assignment {
@@ -24,7 +36,13 @@ impl Assignment {
     }
     pub fn convert_due_date(&self) -> DateTime<Local> {
         let convert_due_date = Local.datetime_from_str(&self.due_time, "%Y-%m-%d %H:%M");
-        return convert_due_date.unwrap();
+        match convert_due_date {
+            Ok(convert_due_date) => convert_due_date,
+            Err(convert_due_date) => panic!("{}", &self.due_time),
+        }
+    }
+    pub fn get_due_date(&self) -> &str {
+        return &self.due_time;
     }
 }
 
@@ -50,7 +68,7 @@ fn turn_timetilldue_into_pdf(due: Vec<i64>) -> Vec<f64> {
 /*
  * Get the amount of time until a given assignment is due in minutes
  */
-fn find_timeuntildue(due_date: DateTime<Local>) -> i64 {
+pub fn find_timeuntildue(due_date: DateTime<Local>) -> i64 {
     let curr_local: DateTime<Local> = Local::now();
     let duration = due_date.signed_duration_since(curr_local).num_minutes();
     return duration;
@@ -61,7 +79,7 @@ fn find_timeuntildue(due_date: DateTime<Local>) -> i64 {
  * that is your probability density function for each assignment
  * The index tracks the same assignment
  */
-pub fn turn_assignmentvector_into_pdf(assign: Vec<Assignment>, use_due: bool) -> Vec<f64> {
+pub fn turn_assignmentvector_into_pdf(assign: &Vec<Assignment>, use_due: bool) -> Vec<f64> {
     if use_due {
         let mut min_till_due: Vec<i64> = Vec::new();
         for i in 0..assign.len() {
@@ -72,4 +90,32 @@ pub fn turn_assignmentvector_into_pdf(assign: Vec<Assignment>, use_due: bool) ->
         let uniform_prob: f64 = 1.0 / assign.len() as f64;
         return vec![uniform_prob; assign.len()];
     }
+}
+
+pub fn readin_tasks(filepath: &str) -> HashMap <String, Vec<Assignment>> {
+    let lines = lines_from_file(filepath);
+    let mut tag_to_taskvectors: HashMap<String, Vec<Assignment>> = HashMap::new();
+    for line in lines {
+        let task_vec: Vec<&str> = line.split("\t").collect();
+        let tag = task_vec[0];
+        let name = task_vec[1];
+        let due_date = task_vec[2];
+        let new_assign = Assignment {
+            name: String::from(name),
+            tag: String::from(tag),
+            due_time: String::from(due_date),
+        };
+        println!("{}", new_assign);
+        if find_timeuntildue(new_assign.convert_due_date()) < 0 {
+            continue;
+        }
+        if !tag_to_taskvectors.contains_key(tag) {
+            let task_vector: Vec<Assignment> = Vec::new();
+            tag_to_taskvectors.insert(tag.to_string(), task_vector);
+        };
+        
+        let curr_vector = tag_to_taskvectors.get_mut(tag).unwrap();
+        curr_vector.push(new_assign);
+    }
+    return tag_to_taskvectors
 }
