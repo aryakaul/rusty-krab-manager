@@ -4,7 +4,6 @@ use assignment_utils::{readin_tasks,turn_assignmentvector_into_pdf, hashmap_to_t
 mod rand_utils;
 mod ui;
 use ui::{draw_gauge, draw_task_table, draw_current_task, Event};
-//use crate::event::{Event, Events};
 mod fileops_utils;
 use std::io;
 use std::error::Error;
@@ -16,9 +15,13 @@ use termion::input::MouseTerminal;
 use termion::raw::IntoRawMode;
 use termion::screen::AlternateScreen;
 use tui::Terminal;
+use std::collections::HashMap;
+
+use config::Config;
 
 fn main() -> Result<(), Box<dyn Error>> {
     // Terminal initialization
+    /*
     let stdout = io::stdout().into_raw_mode()?;
     let stdout = MouseTerminal::from(stdout);
     let stdout = AlternateScreen::from(stdout);
@@ -27,7 +30,32 @@ fn main() -> Result<(), Box<dyn Error>> {
     terminal.hide_cursor()?;
     let events = ui::Events::new();
     let mut app = ui::App::new();
-
+    */
+    let mut settings = config::Config::new();
+    settings
+        .merge(config::File::with_name("/home/luak/projects/git/rusty-manager/example/config"))?;
+    //println!("HI");
+    let tags = settings.get_array("tags")?;
+    let use_due_dates = settings.get_array("use_due_dates")?;
+    let weights_mon = settings.get_array("weights.mon")?;
+    let weights_tue = settings.get_array("weights.tue")?;
+    let weights_wed = settings.get_array("weights.wed")?;
+    let weights_thu = settings.get_array("weights.thu")?;
+    let weights_fri = settings.get_array("weights.fri")?;
+    let weights_sat = settings.get_array("weights.sat")?;
+    let weights_sun = settings.get_array("weights.sun")?;
+    println!("{:?}", tags);
+    println!("{:?}", use_due_dates);
+    println!("{:?}", weights_mon);
+    println!("{:?}", weights_tue);
+    println!("{:?}", weights_wed);
+    println!("{:?}", weights_thu);
+    println!("{:?}", weights_fri);
+    println!("{:?}", weights_sat);
+    println!("{:?}", weights_sun);
+    //println!("{:?}",
+    //         settings.try_into::<HashMap<String, String>>().unwrap());
+    /*
     let task_path = "/home/luak/projects/git/rusty-manager/example/tasks";
 
     // read in initial hashmap
@@ -89,6 +117,6 @@ fn main() -> Result<(), Box<dyn Error>> {
                 }
             }
         };
-    } 
+    } */
     Ok(())
-    }
+}
