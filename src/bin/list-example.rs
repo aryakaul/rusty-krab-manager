@@ -18,6 +18,13 @@ use tui::widgets::{
 };
 use tui::Terminal;
 
+
+pub fn get_percentage_width(width: u16, percentage: f32) -> u16 {
+    let padding = 3;
+    let width = width - padding;
+    (f32::from(width) * percentage) as u16
+}
+
 struct App<'a> {
     items: Vec<Vec<&'a str>>,
     selected: usize,
@@ -28,7 +35,7 @@ impl<'a> App<'a> {
     fn new() -> App<'a> {
         App {
             items: vec![
-                vec!["item11101010101011010100", "item12"],
+                vec!["ABCDEFGHIJKLMNOPQRSTUVWXYZABCDABCD", "item12"],
                 vec!["item21", "item22"],
                 vec!["item21", "item22"],
                 vec!["item21", "item22"],
@@ -71,14 +78,14 @@ impl<'a> App<'a> {
         }
     }
     fn update(&mut self) {
-        self.progress += (250.0 / 600000.0);
+        self.progress += (250.0 / 60000.0);
         if self.progress > 100.0 {
             self.progress = 100.0;
         }
     }
 }
 
-fn main() -> Result<(), Box<Error>> {
+fn main() -> Result<(), Box<dyn Error>> {
     // Terminal initialization
     let stdout = io::stdout().into_raw_mode()?;
     let stdout = MouseTerminal::from(stdout);
@@ -102,14 +109,6 @@ fn main() -> Result<(), Box<Error>> {
             let selected_style = Style::default().fg(Color::Yellow).modifier(Modifier::BOLD);
             let normal_style = Style::default().fg(Color::White);
             let header = ["HEADER1", "HEADER2"];
-            let rows = app.items.iter().enumerate().map(|(i, item)| {
-                if i == app.selected {
-                    Row::StyledData(item.into_iter(), selected_style)
-                } else {
-                    Row::StyledData(item.into_iter(), normal_style)
-                }
-            });
-
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
                 .constraints(
@@ -126,6 +125,22 @@ fn main() -> Result<(), Box<Error>> {
                 .direction(Direction::Horizontal)
                 .constraints([Constraint::Percentage(75), Constraint::Percentage(25)].as_ref())
                 .split(chunks[0]);
+            
+            let padding = 5;
+            let offset = chunks[1]
+                .height
+                .checked_sub(padding)
+                .and_then(|height| app.selected.checked_sub(height as usize))
+                .unwrap_or(0);
+
+            let rows = app.items.iter().skip(offset).enumerate().map(|(i, item)| {
+                if Some(i) == app.selected.checked_sub(offset) {
+                    Row::StyledData(item.into_iter(), selected_style)
+                } else {
+                    Row::StyledData(item.into_iter(), normal_style)
+                }
+            });
+
 
             Paragraph::new(text.iter())
                 .block(Block::default().title("CURRENT TASK").borders(Borders::ALL))
@@ -145,7 +160,10 @@ fn main() -> Result<(), Box<Error>> {
 
             Table::new(header.into_iter(), rows)
                 .block(Block::default().borders(Borders::ALL).title("ALL TASKS"))
-                .widths(&[20, 10])
+                //.widths(&[20, 10])
+                .widths(&
+                    [get_percentage_width(chunks[1].width, 0.8),
+                    get_percentage_width(chunks[1].width, 0.2)])
                 .column_spacing(1)
                 .render(&mut f, chunks[1]);
 
@@ -177,7 +195,7 @@ fn main() -> Result<(), Box<Error>> {
                 _ => {}
             },
             Event::Tick => {
-                app.update();
+                let check = app.update();
             }
         };
     }

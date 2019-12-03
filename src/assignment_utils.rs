@@ -1,6 +1,4 @@
-#[path = "fileops.rs"]
-mod fileops;
-use fileops::lines_from_file;
+use super::fileops_utils::lines_from_file;
 
 //
 // THESE ARE ALL FUNCTIONS RELATED TO THE ASSIGNMENT
@@ -105,7 +103,7 @@ pub fn readin_tasks(filepath: &str) -> HashMap <String, Vec<Assignment>> {
             tag: String::from(tag),
             due_time: String::from(due_date),
         };
-        println!("{}", new_assign);
+        //println!("{}", new_assign);
         if find_timeuntildue(new_assign.convert_due_date()) < 0 {
             continue;
         }
@@ -118,4 +116,20 @@ pub fn readin_tasks(filepath: &str) -> HashMap <String, Vec<Assignment>> {
         curr_vector.push(new_assign);
     }
     return tag_to_taskvectors
+}
+
+// convert to a vector of strings
+pub fn hashmap_to_taskvector(tagmap: HashMap <String, Vec<Assignment>>) -> Vec<Vec<String>> {
+    let mut toret = vec![];
+    for (tag, assign_vec) in &tagmap {
+        for i in 0..assign_vec.len() {
+            let mut new = vec![];
+            let curr_assign = &assign_vec[i];
+            new.push(curr_assign.tag.clone());
+            new.push(curr_assign.name.clone());
+            new.push(curr_assign.due_time.clone());
+            toret.push(new);
+        }
+    }
+    return toret
 }
