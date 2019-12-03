@@ -4,7 +4,6 @@ mod event;
 use std::io;
 
 use crate::event::{Event, Events};
-use ferris_says::say;
 use std::error::Error;
 use termion::event::Key;
 use termion::input::MouseTerminal;
