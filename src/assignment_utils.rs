@@ -90,12 +90,21 @@ pub fn turn_assignmentvector_into_pdf(assign: &Vec<Assignment>, use_due: bool) -
     }
 }
 
-pub fn readin_tasks(filepath: &str) -> HashMap <String, Vec<Assignment>> {
+pub fn readin_tasks(filepath: &str, tag_list: &Vec<String>) -> HashMap <String, Vec<Assignment>> {
     let lines = lines_from_file(filepath);
     let mut tag_to_taskvectors: HashMap<String, Vec<Assignment>> = HashMap::new();
+    for tags in tag_list {
+        let task_vector: Vec<Assignment> = Vec::new();
+        tag_to_taskvectors.insert(tags.to_string(), task_vector);
+    };
+
     for line in lines {
         let task_vec: Vec<&str> = line.split("\t").collect();
         let tag = task_vec[0];
+        if !tag_to_taskvectors.contains_key(tag) {
+            println!("Tag shown in task list not described in config.");
+            panic!("{}", tag);
+        };
         let name = task_vec[1];
         let due_date = task_vec[2];
         let new_assign = Assignment {
@@ -107,10 +116,6 @@ pub fn readin_tasks(filepath: &str) -> HashMap <String, Vec<Assignment>> {
         if find_timeuntildue(new_assign.convert_due_date()) < 0 {
             continue;
         }
-        if !tag_to_taskvectors.contains_key(tag) {
-            let task_vector: Vec<Assignment> = Vec::new();
-            tag_to_taskvectors.insert(tag.to_string(), task_vector);
-        };
         
         let curr_vector = tag_to_taskvectors.get_mut(tag).unwrap();
         curr_vector.push(new_assign);
@@ -131,5 +136,21 @@ pub fn hashmap_to_taskvector(tagmap: HashMap <String, Vec<Assignment>>) -> Vec<V
             toret.push(new);
         }
     }
+    return toret
+}
+
+// convert to a string vector with newline characters
+pub fn taskvector_to_stringvect(curr_assign: &Assignment) -> Vec<String> {
+    let mut toret: Vec<String> = Vec::with_capacity(3);
+    let newline = "\n";
+    let mut name = curr_assign.name.clone();
+    name.push_str(newline);
+    let mut tag = curr_assign.tag.clone();
+    tag.push_str(newline);
+    let mut due_date = curr_assign.due_time.clone();
+    due_date.push_str(newline);
+    toret.push(name);
+    toret.push(tag);
+    toret.push(due_date);
     return toret
 }

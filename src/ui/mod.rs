@@ -100,25 +100,29 @@ impl Events {
     }
 }
 
-pub struct App<'a> {
+//pub struct App<'a> {
+//pub struct App<> {
+pub struct App {
     //pub items: Vec<Vec<&'a str>>,
     pub items: Vec<Vec<String>>,
     pub selected: usize,
     pub progress: f64,
     //pub current_task: Vec<&'a str>,
-    pub current_task: Vec<&'a str>,
+    pub current_task: Vec<String>,
     //pub current_task: Vec<&str>,
 }
 
-impl<'a> App<'a> {
-    pub fn new() -> App<'a> {
+//impl<'a> App<'a> {
+impl App {
+    //pub fn new() -> App<'a> {
+    pub fn new() -> App {
         App {
             items: vec![
                 vec![String::from("GANG"), String::from("GANG"), String::from("GANG")]
             ],
             selected: 0,
             progress: 0.0,
-            current_task: vec!["Hello\n","Heyyo!\n","MEMES\n"],
+            current_task: vec![String::from("Hello\n"),String::from("Heyyo!\n"),String::from("MEMES\n")],
         }
     }
     pub fn update(&mut self, minutes: u64) -> bool {
@@ -178,12 +182,14 @@ pub fn draw_current_task<B>(mut f: &mut Frame<B>, app: &App, area: Rect)
         B: Backend,
 {
     let mut new_shit = vec![];
+    let x = Text::styled("DO THIS SHIT\n\n", Style::default().bg(Color::Green));
+    new_shit.push(x);
     for i in 0..app.current_task.len() {
-        new_shit.push(Text::raw(app.current_task[i]))
+        new_shit.push(Text::raw(&app.current_task[i]))
     }
     Paragraph::new(new_shit.iter())
         .block(Block::default().title("CURRENT TASK").borders(Borders::ALL))
-        .alignment(Alignment::Left)
+        .alignment(Alignment::Center)
         .wrap(true)
         .render(&mut f, area)
 }
