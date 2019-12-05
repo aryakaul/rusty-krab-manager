@@ -8,6 +8,9 @@ use ui::{draw_gauge, draw_task_table, draw_current_task, Event};
 mod fileops_utils;
 use std::io;
 use std::error::Error;
+//use std::env::home_dir;
+//use dirs::home_dir;
+//extern crate dirs;
 use tui::backend::TermionBackend;
 use tui::layout::{Constraint, Direction, Layout};
 use termion::event::Key;
@@ -21,16 +24,54 @@ use std::collections::HashMap;
 use config::Config;
 use chrono::{Local, Weekday, Datelike};
 
+fn choose_task(
+    configured_task_path: &str,
+    vector_of_tags: &Vec<String>, 
+    configured_relative_tag_weights: &mut Vec<f64>, 
+    configured_use_of_due_dates: &Vec<bool>, 
+    ) -> (Vec<String>, Vec<Vec<String>>) {
+    
+    // read in tasks
+    let tag_to_vector_map = readin_tasks(configured_task_path, &vector_of_tags);
+   
+    // update tag weights when no tasks in task_file
+    // st
+    let mut xi: f64 = 0.0;
+    let mut ctr = 0;
+    for (tag, assign_vec) in &tag_to_vector_map {
+        if assign_vec.len() == 0 {
+            let tag_loc = vector_of_tags.iter().position(|z| &z == &tag).unwrap();
+            xi += configured_relative_tag_weights[tag_loc];
+            configured_relative_tag_weights[tag_loc] = 0.0;
+        } else {
+            ctr += 1 
+        }
+    }
+    let to_add = xi / ctr as f64;
+    for i in 0..vector_of_tags.len() {
+        if configured_relative_tag_weights[i] != 0.0 {
+            configured_relative_tag_weights[i] += to_add;
+        }
+    }
+    // en
+
+
+    // roll a assignment 
+    // st{
+    let tag_roll = roll_die(configured_relative_tag_weights.to_vec());
+    let chosen_tag = &vector_of_tags[tag_roll];
+    let assignvector = tag_to_vector_map.get(chosen_tag).unwrap();
+    let assignvector_pdf = turn_assignmentvector_into_pdf(&assignvector, configured_use_of_due_dates[tag_roll]);
+    let chosen_assign = &assignvector[roll_die(assignvector_pdf)];
+    //println!("{:?}", assign_string);
+    // }en
+    
+    let assign_string = taskvector_to_stringvect(chosen_assign); 
+    let string_alltask_vec = hashmap_to_taskvector(tag_to_vector_map);
+    return (assign_string, string_alltask_vec)
+}
+
 fn main() -> Result<(), Box<dyn Error>> {
-    // Terminal initialization
-    let stdout = io::stdout().into_raw_mode()?;
-    let stdout = MouseTerminal::from(stdout);
-    let stdout = AlternateScreen::from(stdout);
-    let backend = TermionBackend::new(stdout);
-    let mut terminal = Terminal::new(backend)?;
-    terminal.hide_cursor()?;
-    let events = ui::Events::new();
-    let mut app = ui::App::new();
 
     // READ IN CONFIGRUATION
     // st
@@ -38,6 +79,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     settings
         .merge(config::File::with_name("/home/luak/projects/git/rusty-manager/example/config"))?;
     let task_path = settings.get_str("task_filepath")?;
+    //if task_path.contains("~") { task_path.replace("~", dirs::home_dir().unwrap() };
     let tags = settings.get_array("tags")?;
     let tags: Vec<String> = tags.into_iter().map(|i| i.into_str().unwrap()).collect();
     let use_due_dates = settings.get_array("use_due_dates")?;
@@ -56,6 +98,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     let weights_sat: Vec<f64> = weights_sat.into_iter().map(|i| i.into_float().unwrap()).collect();
     let weights_sun = settings.get_array("weights.sun")?;
     let weights_sun: Vec<f64> = weights_sun.into_iter().map(|i| i.into_float().unwrap()).collect();
+    let min_break_time = 0.01;
+    let max_break_time = 0.02;
+    let maxno_min_breaks = 2;
+    let task_time = 0.01;
+
     /*
     println!("{:?}", task_path);
     println!("{:?}", tags);
@@ -79,6 +126,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     //println!("{}", curr_day);
     // en
 
+    /*
     // read in tasks
     let tag_to_vector_map = readin_tasks(&task_path, &tags);
    
@@ -119,7 +167,25 @@ fn main() -> Result<(), Box<dyn Error>> {
     app.current_task = assign_string;
     let string_alltask_vec = hashmap_to_taskvector(tag_to_vector_map);
     app.items = string_alltask_vec;
+    */
+    let mut min_break_ctr = 0;
+    let (curr_task, items_to_list) = choose_task(&task_path, &tags, &mut tag_weights, &use_due_dates);
     
+    // Terminal initialization
+    let stdout = io::stdout().into_raw_mode()?;
+    let stdout = MouseTerminal::from(stdout);
+    let stdout = AlternateScreen::from(stdout);
+    let backend = TermionBackend::new(stdout);
+    let mut terminal = Terminal::new(backend)?;
+    terminal.hide_cursor()?;
+    let events = ui::Events::new();
+    let mut app = ui::App::new();
+    app.current_task = curr_task;
+    app.items = items_to_list;
+
+    let mut its_task_time = true;
+    let mut its_min_break_time = false;
+    let mut its_max_break_time = false;
     loop {
         terminal.draw(|mut f| {
             let chunks = Layout::default()
@@ -164,11 +230,40 @@ fn main() -> Result<(), Box<dyn Error>> {
                 _ => {}
             },
             Event::Tick => {
-                let check = app.update(1);
-                if check {
-                    //let tag_to_vector_map = readin_tasks(task_path);
-                    //app.items = string_task_vec;
-                    //let task_list = turn_assignmentvector_into_pdf(vect, true);
+                //app.update(task_time, its_min_break_time);
+                if its_task_time {
+                     if min_break_ctr == maxno_min_breaks {
+                         its_max_break_time = app.update(task_time);
+                         //app.update(task_time, its_max_break_time);
+                     } else {
+                         its_min_break_time = app.update(task_time);
+                         //println!("{}", its_min_break_time);
+                         //app.update(task_time, its_min_break_time);
+                         //app.update(task_time);
+                     }
+                     if its_min_break_time || its_max_break_time { its_task_time = false;};
+                } else if its_min_break_time {
+                    app.current_task = vec![String::from("TAKE A CHILL PILL")];
+                    its_task_time = app.update(min_break_time);
+                    //app.update(min_break_time, its_task_time);
+                    if its_task_time {
+                        min_break_ctr += 1;
+                        let (curr_task, items_to_list) = choose_task(&task_path, &tags, &mut tag_weights, &use_due_dates);
+                        app.current_task = curr_task;
+                        app.items = items_to_list;
+                        its_min_break_time = false;
+                    }
+                } else if its_max_break_time {
+                    app.current_task = vec![String::from("TAKE A LONG CHILL PILL")];
+                    its_task_time = app.update(max_break_time);
+                    //app.update(max_break_time, its_task_time);
+                    if its_task_time { 
+                        min_break_ctr = 0;
+                        let (curr_task, items_to_list) = choose_task(&task_path, &tags, &mut tag_weights, &use_due_dates);
+                        app.current_task = curr_task;
+                        app.items = items_to_list;
+                        its_max_break_time = false;
+                    }
                 }
             }
         };

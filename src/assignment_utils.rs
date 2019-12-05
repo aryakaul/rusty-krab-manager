@@ -99,7 +99,7 @@ pub fn readin_tasks(filepath: &str, tag_list: &Vec<String>) -> HashMap <String, 
     };
 
     for line in lines {
-        let task_vec: Vec<&str> = line.split("\t").collect();
+        let task_vec: Vec<&str> = line.split(",").collect();
         let tag = task_vec[0];
         if !tag_to_taskvectors.contains_key(tag) {
             println!("Tag shown in task list not described in config.");
@@ -150,7 +150,7 @@ pub fn taskvector_to_stringvect(curr_assign: &Assignment) -> Vec<String> {
     let mut due_date = curr_assign.due_time.clone();
     due_date.push_str(newline);
     toret.push(name);
-    toret.push(tag);
+    //toret.push(tag);
     toret.push(due_date);
     return toret
 }

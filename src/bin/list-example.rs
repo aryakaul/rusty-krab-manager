@@ -77,14 +77,17 @@ impl<'a> App<'a> {
         }
     }
     fn update(&mut self) {
-        self.progress += (250.0 / 60000.0);
-        if self.progress > 100.0 {
-            self.progress = 100.0;
+        self.progress += (250.0 / 6000.0);
+        //self.progress += 4;
+        if self.progress > 1.0 {
+            self.progress = 0.0;
         }
     }
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
+//fn main() -> Result<(), failure::Error> {
+//fn main() { 
     // Terminal initialization
     let stdout = io::stdout().into_raw_mode()?;
     let stdout = MouseTerminal::from(stdout);
@@ -96,18 +99,20 @@ fn main() -> Result<(), Box<dyn Error>> {
     let events = Events::new();
     let mut app = App::new();
 
+    /*
     let text = [Text::raw("This is a line \n")];
     let text2 = [
         Text::raw("This is a second line \n"),
         Text::raw("This is a third line \n"),
         Text::raw("This is a Fourth line \n"),
-    ];
+    ];*/
 
+    let selected_style = Style::default().fg(Color::Yellow).modifier(Modifier::BOLD);
+    let normal_style = Style::default().fg(Color::White);
+    let header = ["HEADER1", "HEADER2"];
+    let padding = 5;
     loop {
         terminal.draw(|mut f| {
-            let selected_style = Style::default().fg(Color::Yellow).modifier(Modifier::BOLD);
-            let normal_style = Style::default().fg(Color::White);
-            let header = ["HEADER1", "HEADER2"];
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
                 .constraints(
@@ -120,12 +125,12 @@ fn main() -> Result<(), Box<dyn Error>> {
                 )
                 .split(f.size());
 
+            /*
             let mini_chunks = Layout::default()
                 .direction(Direction::Horizontal)
                 .constraints([Constraint::Percentage(75), Constraint::Percentage(25)].as_ref())
                 .split(chunks[0]);
             
-            let padding = 5;
             let offset = chunks[1]
                 .height
                 .checked_sub(padding)
@@ -139,7 +144,6 @@ fn main() -> Result<(), Box<dyn Error>> {
                     Row::StyledData(item.into_iter(), normal_style)
                 }
             });
-
 
             Paragraph::new(text.iter())
                 .block(Block::default().title("CURRENT TASK").borders(Borders::ALL))
@@ -165,13 +169,14 @@ fn main() -> Result<(), Box<dyn Error>> {
                     get_percentage_width(chunks[1].width, 0.2)])
                 .column_spacing(1)
                 .render(&mut f, chunks[1]);
-
+            */
             Gauge::default()
                 .block(Block::default().title("TIME LEFT").borders(Borders::ALL))
                 .style(Style::default().fg(Color::Yellow))
                 .ratio(app.progress)
                 .render(&mut f, chunks[2]);
         })?;
+
 
         match events.next()? {
             Event::Input(input) => match input {
@@ -192,11 +197,11 @@ fn main() -> Result<(), Box<dyn Error>> {
                     }
                 }
                 _ => {}
-            },
-            Event::Tick => {
-                let check = app.update();
             }
-        };
+            Event::Tick => {
+                app.update();
+            }
+        }
     }
     Ok(())
 }

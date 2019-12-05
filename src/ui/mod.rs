@@ -125,13 +125,14 @@ impl App {
             current_task: vec![String::from("Hello\n"),String::from("Heyyo!\n"),String::from("MEMES\n")],
         }
     }
-    pub fn update(&mut self, minutes: u64) -> bool {
+    //pub fn update(&mut self, minutes: u64) -> bool {
+    pub fn update(&mut self, minutes: f64) -> bool {
         self.progress += (250.0 / 600000.0) / minutes as f64;
-        if self.progress > 100.0 {
-            self.progress = 100.0;
-            return true
+        if self.progress > 1.0 {
+            self.progress = 0.0;
+            return true;
         }
-        return false
+        return false;
     }
 }
 
@@ -182,14 +183,15 @@ pub fn draw_current_task<B>(mut f: &mut Frame<B>, app: &App, area: Rect)
         B: Backend,
 {
     let mut new_shit = vec![];
-    let x = Text::styled("DO THIS SHIT\n\n", Style::default().bg(Color::Green));
+    let x = Text::styled("DO THIS SHIT\n\n", Style::default().bg(Color::Green).modifier(Modifier::BOLD));
     new_shit.push(x);
     for i in 0..app.current_task.len() {
-        new_shit.push(Text::raw(&app.current_task[i]))
+        new_shit.push(Text::raw(&app.current_task[i]));
     }
+    //new_shit.push(x);
     Paragraph::new(new_shit.iter())
         .block(Block::default().title("CURRENT TASK").borders(Borders::ALL))
         .alignment(Alignment::Center)
         .wrap(true)
-        .render(&mut f, area)
+        .render(&mut f, area);
 }
