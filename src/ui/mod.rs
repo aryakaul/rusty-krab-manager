@@ -1,22 +1,9 @@
-mod event;
-
-use std::io;
-//use std::error::Error;
-use termion::event::Key;
-//use termion::input::MouseTerminal;
-//use termion::raw::IntoRawMode;
-//use termion::screen::AlternateScreen;
-use tui::backend::{Backend};
+pub mod event;
+use tui::backend::Backend;
 use tui::layout::{Alignment, Rect};
 use tui::style::{Color, Modifier, Style};
-use tui::widgets::{
-    Block, Borders, Gauge, Paragraph, Row, Table, Widget, Text
-};
-use tui::{Frame};
-use std::sync::mpsc;
-use std::thread;
-use std::time::Duration;
-use termion::input::TermRead;
+use tui::widgets::{Block, Borders, Gauge, Paragraph, Row, Table, Text, Widget};
+use tui::Frame;
 
 pub fn get_percentage_width(width: u16, percentage: f32) -> u16 {
     let padding = 3;
@@ -24,110 +11,32 @@ pub fn get_percentage_width(width: u16, percentage: f32) -> u16 {
     (f32::from(width) * percentage) as u16
 }
 
-pub enum Event<I> {
-    Input(I),
-    Tick,
-}
-
-/// A small event handler that wrap termion input and tick events. Each event
-/// type is handled in its own thread and returned to a common `Receiver`
-pub struct Events {
-    rx: mpsc::Receiver<Event<Key>>,
-    input_handle: thread::JoinHandle<()>,
-    tick_handle: thread::JoinHandle<()>,
-}
-
-#[derive(Debug, Clone, Copy)]
-pub struct Config {
-    pub exit_key: Key,
-    pub tick_rate: Duration,
-}
-
-impl Default for Config {
-    fn default() -> Config {
-        Config {
-            exit_key: Key::Char('q'),
-            tick_rate: Duration::from_millis(250),
-        }
-    }
-}
-
-impl Events {
-    pub fn new() -> Events {
-        Events::with_config(Config::default())
-    }
-
-    pub fn with_config(config: Config) -> Events {
-        let (tx, rx) = mpsc::channel();
-        let input_handle = {
-            let tx = tx.clone();
-            thread::spawn(move || {
-                let stdin = io::stdin();
-                for evt in stdin.keys() {
-                    match evt {
-                        Ok(key) => {
-                            if let Err(_) = tx.send(Event::Input(key)) {
-                                return;
-                            }
-                            if key == config.exit_key {
-                                return;
-                            }
-                        }
-                        Err(_) => {}
-                    }
-                }
-            })
-        };
-        let tick_handle = {
-            let tx = tx.clone();
-            thread::spawn(move || {
-                let tx = tx.clone();
-                loop {
-                    tx.send(Event::Tick).unwrap();
-                    thread::sleep(config.tick_rate);
-                }
-            })
-        };
-        Events {
-            rx,
-            input_handle,
-            tick_handle,
-        }
-    }
-
-    pub fn next(&self) -> Result<Event<Key>, mpsc::RecvError> {
-        self.rx.recv()
-    }
-}
-
-//pub struct App<'a> {
-//pub struct App<> {
 pub struct App {
-    //pub items: Vec<Vec<&'a str>>,
     pub items: Vec<Vec<String>>,
     pub selected: usize,
     pub progress: f64,
-    //pub current_task: Vec<&'a str>,
     pub current_task: Vec<String>,
-    //pub current_task: Vec<&str>,
 }
 
-//impl<'a> App<'a> {
 impl App {
-    //pub fn new() -> App<'a> {
     pub fn new() -> App {
         App {
-            items: vec![
-                vec![String::from("GANG"), String::from("GANG"), String::from("GANG")]
-            ],
+            items: vec![vec![
+                String::from("GANG"),
+                String::from("GANG"),
+                String::from("GANG"),
+            ]],
             selected: 0,
             progress: 0.0,
-            current_task: vec![String::from("Hello\n"),String::from("Heyyo!\n"),String::from("MEMES\n")],
+            current_task: vec![
+                String::from("Hello\n"),
+                String::from("Heyyo!\n"),
+                String::from("MEMES\n"),
+            ],
         }
     }
-    //pub fn update(&mut self, minutes: u64) -> bool {
-    pub fn update(&mut self, minutes: f64) -> bool {
-        self.progress += (250.0 / 600000.0) / minutes as f64;
+    pub fn update(&mut self, minutes: i64) -> bool {
+        self.progress += (250.0 / 60000.0) / minutes as f64;
         if self.progress > 1.0 {
             self.progress = 0.0;
             return true;
@@ -136,9 +45,9 @@ impl App {
     }
 }
 
-pub fn draw_gauge<B>(mut f: &mut Frame<B>, app: &App, area: Rect) 
-where 
-        B: Backend,
+pub fn draw_gauge<B>(mut f: &mut Frame<B>, app: &App, area: Rect)
+where
+    B: Backend,
 {
     Gauge::default()
         .block(Block::default().title("TIME LEFT").borders(Borders::ALL))
@@ -148,12 +57,12 @@ where
 }
 
 pub fn draw_task_table<B>(mut f: &mut Frame<B>, app: &App, area: Rect)
-where 
+where
     B: Backend,
 {
-    let header = ["Tag", "Name", "Due Date"];
+    let header = ["\nTag", "\nName", "\nDue Date"];
     let padding = 5;
-    let offset = area 
+    let offset = area
         .height
         .checked_sub(padding)
         .and_then(|height| app.selected.checked_sub(height as usize))
@@ -170,20 +79,24 @@ where
     });
     Table::new(header.into_iter(), rows)
         .block(Block::default().borders(Borders::ALL).title("ALL TASKS"))
-        .widths(&
-            [get_percentage_width(area.width, 0.2),
-            get_percentage_width(area.width, 0.4),
-            get_percentage_width(area.width, 0.4)])
+        .widths(&[
+            get_percentage_width(area.width, 0.15),
+            get_percentage_width(area.width, 0.55),
+            get_percentage_width(area.width, 0.3),
+        ])
         .column_spacing(1)
         .render(&mut f, area);
 }
 
 pub fn draw_current_task<B>(mut f: &mut Frame<B>, app: &App, area: Rect)
-    where
-        B: Backend,
+where
+    B: Backend,
 {
     let mut new_shit = vec![];
-    let x = Text::styled("DO THIS SHIT\n\n", Style::default().bg(Color::Green).modifier(Modifier::BOLD));
+    let x = Text::styled(
+        "DO THIS SHIT\n\n",
+        Style::default().bg(Color::Green).modifier(Modifier::BOLD),
+    );
     new_shit.push(x);
     for i in 0..app.current_task.len() {
         new_shit.push(Text::raw(&app.current_task[i]));

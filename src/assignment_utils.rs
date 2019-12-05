@@ -6,8 +6,8 @@ use super::fileops_utils::lines_from_file;
 //
 
 use chrono::prelude::*;
-use std::fmt;
 use std::collections::HashMap;
+use std::fmt;
 
 /* Define 'Assignment' object */
 pub struct Assignment {
@@ -18,11 +18,12 @@ pub struct Assignment {
 
 impl fmt::Display for Assignment {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    write!(f, "({}, {}, {})", self.name, self.tag, self.due_time)
+        write!(f, "({}, {}, {})", self.name, self.tag, self.due_time)
     }
 }
 
 impl Assignment {
+    /*
     pub fn change_name(&mut self, new_name: String) {
         self.name = new_name;
     }
@@ -32,15 +33,15 @@ impl Assignment {
     pub fn update_due_date(&mut self, new_due: String) {
         self.due_time = new_due;
     }
+    pub fn get_due_date(&self) -> &str {
+        return &self.due_time;
+    }*/
     pub fn convert_due_date(&self) -> DateTime<Local> {
         let convert_due_date = Local.datetime_from_str(&self.due_time, "%Y-%m-%d %H:%M");
         match convert_due_date {
             Ok(convert_due_date) => convert_due_date,
-            Err(convert_due_date) => panic!("{}", &self.due_time),
+            _=> panic!("{}", &self.due_time),
         }
-    }
-    pub fn get_due_date(&self) -> &str {
-        return &self.due_time;
     }
 }
 
@@ -90,13 +91,13 @@ pub fn turn_assignmentvector_into_pdf(assign: &Vec<Assignment>, use_due: bool) -
     }
 }
 
-pub fn readin_tasks(filepath: &str, tag_list: &Vec<String>) -> HashMap <String, Vec<Assignment>> {
+pub fn readin_tasks(filepath: &str, tag_list: &Vec<String>) -> HashMap<String, Vec<Assignment>> {
     let lines = lines_from_file(filepath);
     let mut tag_to_taskvectors: HashMap<String, Vec<Assignment>> = HashMap::new();
     for tags in tag_list {
         let task_vector: Vec<Assignment> = Vec::new();
         tag_to_taskvectors.insert(tags.to_string(), task_vector);
-    };
+    }
 
     for line in lines {
         let task_vec: Vec<&str> = line.split(",").collect();
@@ -116,17 +117,18 @@ pub fn readin_tasks(filepath: &str, tag_list: &Vec<String>) -> HashMap <String, 
         if find_timeuntildue(new_assign.convert_due_date()) < 0 {
             continue;
         }
-        
+
         let curr_vector = tag_to_taskvectors.get_mut(tag).unwrap();
         curr_vector.push(new_assign);
     }
-    return tag_to_taskvectors
+    return tag_to_taskvectors;
 }
 
 // convert to a vector of strings
-pub fn hashmap_to_taskvector(tagmap: HashMap <String, Vec<Assignment>>) -> Vec<Vec<String>> {
+pub fn hashmap_to_taskvector(tagmap: HashMap<String, Vec<Assignment>>, tag_vector: &Vec<String>) -> Vec<Vec<String>> {
     let mut toret = vec![];
-    for (tag, assign_vec) in &tagmap {
+    for tags in tag_vector {
+        let assign_vec = tagmap.get(tags).unwrap();
         for i in 0..assign_vec.len() {
             let mut new = vec![];
             let curr_assign = &assign_vec[i];
@@ -136,7 +138,7 @@ pub fn hashmap_to_taskvector(tagmap: HashMap <String, Vec<Assignment>>) -> Vec<V
             toret.push(new);
         }
     }
-    return toret
+    return toret;
 }
 
 // convert to a string vector with newline characters
@@ -152,5 +154,5 @@ pub fn taskvector_to_stringvect(curr_assign: &Assignment) -> Vec<String> {
     toret.push(name);
     //toret.push(tag);
     toret.push(due_date);
-    return toret
+    return toret;
 }

@@ -13,6 +13,14 @@ tags = [ "school", "research", "personal" ]
 ## being pulled. When 'false' equal weight to all assignments
 use_due_dates = [ false, true, false ]
 
+# timings for tasks/breaks/longbreaks in minutes
+short_break_time = 5
+long_break_time = 15
+task_time = 30
+
+# number of small breaks before big break
+maxno_short_breaks = 2
+
 
 # weights for each tag project are broken down by day of the week.
 ## i.e. if you have two tags: ["schoolwork", "personal"] and weights
@@ -27,3 +35,4 @@ thu = [ 0.7, 0.2, 0.1 ]
 fri = [ 0.6, 0.4, 0.0 ]
 sat = [ 0.2, 0.3, 0.5 ]
 sun = [ 0.3, 0.2, 0.5 ]
+
