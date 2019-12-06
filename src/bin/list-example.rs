@@ -12,9 +12,7 @@ use termion::screen::AlternateScreen;
 use tui::backend::TermionBackend;
 use tui::layout::{Alignment, Constraint, Direction, Layout};
 use tui::style::{Color, Modifier, Style};
-use tui::widgets::{
-    Block, Borders, Gauge, Paragraph, Row, Table, Text, Widget,
-};
+use tui::widgets::{Block, Borders, Gauge, Paragraph, Row, Table, Text, Widget};
 use tui::Terminal;
 
 pub fn get_percentage_width(width: u16, percentage: f32) -> u16 {
@@ -161,9 +159,10 @@ fn main() -> Result<(), Box<dyn Error>> {
             Table::new(header.into_iter(), rows)
                 .block(Block::default().borders(Borders::ALL).title("ALL TASKS"))
                 //.widths(&[20, 10])
-                .widths(&
-                    [get_percentage_width(chunks[1].width, 0.8),
-                    get_percentage_width(chunks[1].width, 0.2)])
+                .widths(&[
+                    get_percentage_width(chunks[1].width, 0.8),
+                    get_percentage_width(chunks[1].width, 0.2),
+                ])
                 .column_spacing(1)
                 .render(&mut f, chunks[1]);
             Gauge::default()

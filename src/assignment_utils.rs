@@ -40,7 +40,7 @@ impl Assignment {
         let convert_due_date = Local.datetime_from_str(&self.due_time, "%Y-%m-%d %H:%M");
         match convert_due_date {
             Ok(convert_due_date) => convert_due_date,
-            _=> panic!("{}", &self.due_time),
+            _ => panic!("{}", &self.due_time),
         }
     }
 }
@@ -125,7 +125,10 @@ pub fn readin_tasks(filepath: &str, tag_list: &Vec<String>) -> HashMap<String, V
 }
 
 // convert to a vector of strings
-pub fn hashmap_to_taskvector(tagmap: HashMap<String, Vec<Assignment>>, tag_vector: &Vec<String>) -> Vec<Vec<String>> {
+pub fn hashmap_to_taskvector(
+    tagmap: HashMap<String, Vec<Assignment>>,
+    tag_vector: &Vec<String>,
+) -> Vec<Vec<String>> {
     let mut toret = vec![];
     for tags in tag_vector {
         let assign_vec = tagmap.get(tags).unwrap();
