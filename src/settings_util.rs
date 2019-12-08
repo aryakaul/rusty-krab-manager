@@ -3,11 +3,12 @@ use std::error::Error;
 
 pub fn readin_settings(
     config_path: &str,
-) -> Result<(String, Vec<String>, Vec<bool>, Vec<f64>, i64, i64, i64, i64), Box<dyn Error>> {
+) -> Result<(String, String, Vec<String>, Vec<bool>, Vec<f64>, i64, i64, i64, i64), Box<dyn Error>> {
     // Read in configuration
     let mut settings = config::Config::new();
     settings.merge(config::File::with_name(config_path))?;
     let task_path = settings.get_str("task_filepath")?;
+    let sound_path = settings.get_str("sound_filepath")?;
     let tags = settings.get_array("tags")?;
     let tags: Vec<String> = tags.into_iter().map(|i| i.into_str().unwrap()).collect();
     let use_due_dates = settings.get_array("use_due_dates")?;
@@ -71,9 +72,11 @@ pub fn readin_settings(
     let max_break_time = settings.get_int("long_break_time")?;
     let task_time = settings.get_int("task_time")?;
     let maxno_min_breaks = settings.get_int("maxno_short_breaks")?;
-
+    //let num_times = settings.get_int("number_of_times_sound_plays")?;
+    
     return Ok((
         task_path,
+        sound_path,
         tags,
         use_due_dates,
         tag_weights,

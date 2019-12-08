@@ -1,5 +1,5 @@
 [package]
-name = "rusty-manager"
+name = "rusty-krab-manager"
 version = "0.1.0"
 authors = ["luak <arya_kaul@g.harvard.edu>"]
 edition = "2018"
@@ -12,3 +12,4 @@ chrono = "0.4"
 tui = "0.5"
 termion = "1.5"
 config = "0.9"
+rodio = "0.10"

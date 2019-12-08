@@ -16,6 +16,7 @@ pub struct App {
     pub selected: usize,
     pub progress: f64,
     pub current_task: Vec<String>,
+    pub paused: bool,
 }
 
 impl App {
@@ -33,6 +34,7 @@ impl App {
                 String::from("Heyyo!\n"),
                 String::from("MEMES\n"),
             ],
+            paused: false,
         }
     }
     pub fn update(&mut self, minutes: i64) -> bool {

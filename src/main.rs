@@ -18,7 +18,7 @@ use termion::screen::AlternateScreen;
 use tui::backend::TermionBackend;
 use tui::layout::{Constraint, Direction, Layout};
 use tui::Terminal;
-//use chrono::{Datelike, Local};
+mod sound_utils;
 
 fn choose_task(
     configured_task_path: &str,
@@ -63,9 +63,11 @@ fn choose_task(
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
+    
     // Read in configuration
     let (
         task_path,
+        sound_path,
         tags,
         use_due_dates,
         mut tag_weights,
@@ -73,7 +75,12 @@ fn main() -> Result<(), Box<dyn Error>> {
         max_break_time,
         task_time,
         maxno_min_breaks,
-    ) = settings_util::readin_settings("/home/luak/projects/git/rusty-manager/example/config")?;
+    ) = settings_util::readin_settings("/home/luak/projects/git/rusty-krab-manager/example/config")?;
+
+    // initialize audio sink
+    let sink = sound_utils::initialize_audio_sink();
+    //let source = sound_utils::initialize_audio_source(&sound_path)?.repeat_infinite();
+    //source = source.amplify(0.5);
 
     // Choose initial task
     let (curr_task, items_to_list) =
@@ -126,6 +133,13 @@ fn main() -> Result<(), Box<dyn Error>> {
                 Key::Char('q') => {
                     break;
                 }
+                Key::Char('p') => {
+                    if app.paused {
+                        app.paused = false;
+                    } else {
+                        app.paused = true;
+                    }
+                }
                 Key::Down | Key::Char('j') => {
                     app.selected += 1;
                     if app.selected > app.items.len() - 1 {
@@ -142,21 +156,33 @@ fn main() -> Result<(), Box<dyn Error>> {
                 _ => {}
             },
             Event::Tick => {
-                //app.update(task_time, its_min_break_time);
-                if its_task_time {
+
+                if app.paused {
+                
+                } else if its_task_time {
+                // is it time for a task?
+
+                    // is next break a long break?
                     if min_break_ctr == maxno_min_breaks {
                         its_max_break_time = app.update(task_time);
-                    } else {
+                    } else { // otherwise have a min break
                         its_min_break_time = app.update(task_time);
                     }
+
+                    // if task time is up. reset task time
                     if its_min_break_time || its_max_break_time {
+                        sound_utils::playsound(&sound_path, &sink)?;
                         its_task_time = false;
                     };
+
+                // time for a small break?
                 } else if its_min_break_time {
                     app.current_task = vec![String::from("TAKE A CHILL PILL")];
                     its_task_time = app.update(min_break_time);
-                    //app.update(min_break_time, its_task_time);
+
+                    // if small break over, reroll task
                     if its_task_time {
+                        sound_utils::playsound(&sound_path, &sink)?;
                         min_break_ctr += 1;
                         let (curr_task, items_to_list) =
                             choose_task(&task_path, &tags, &mut tag_weights, &use_due_dates);
@@ -164,10 +190,15 @@ fn main() -> Result<(), Box<dyn Error>> {
                         app.items = items_to_list;
                         its_min_break_time = false;
                     }
+
+                // time for big break?
                 } else if its_max_break_time {
                     app.current_task = vec![String::from("TAKE A LONG CHILL PILL")];
                     its_task_time = app.update(max_break_time);
+
+                    // if big break over, reroll task
                     if its_task_time {
+                        sound_utils::playsound(&sound_path, &sink)?;
                         min_break_ctr = 0;
                         let (curr_task, items_to_list) =
                             choose_task(&task_path, &tags, &mut tag_weights, &use_due_dates);
