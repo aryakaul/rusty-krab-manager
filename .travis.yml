@@ -7,3 +7,7 @@ jobs:
   allow_failures:
     - rust: nightly
   fast_finish: true
+addons:
+apt:
+  packages:
+  - libasound2-dev
