@@ -23,19 +23,6 @@ impl fmt::Display for Assignment {
 }
 
 impl Assignment {
-    /*
-    pub fn change_name(&mut self, new_name: String) {
-        self.name = new_name;
-    }
-    pub fn change_tag(&mut self, new_tag: String) {
-        self.tag = new_tag;
-    }
-    pub fn update_due_date(&mut self, new_due: String) {
-        self.due_time = new_due;
-    }
-    pub fn get_due_date(&self) -> &str {
-        return &self.due_time;
-    }*/
     pub fn convert_due_date(&self) -> DateTime<Local> {
         let convert_due_date = Local.datetime_from_str(&self.due_time, "%Y-%m-%d %H:%M");
         match convert_due_date {
@@ -154,8 +141,25 @@ pub fn taskvector_to_stringvect(curr_assign: &Assignment) -> Vec<String> {
     tag.push_str(newline);
     let mut due_date = curr_assign.due_time.clone();
     due_date.push_str(newline);
+    toret.push(tag);
     toret.push(name);
-    //toret.push(tag);
     toret.push(due_date);
+    return toret;
+}
+
+pub fn get_tag_counter_hashmap(tag_vector: &Vec<String>) -> HashMap<String, i64> {
+    let mut toret: HashMap<String, i64> = HashMap::new();
+    for tags in tag_vector {
+        toret.insert(tags.to_string(), 0);
+    }
+    return toret;
+}
+
+
+pub fn convert_hashmap_to_tuplevector(x: &HashMap<String, i64>) -> Vec<(String, String)> {
+    let mut toret: Vec<(String,String)> = Vec::new();
+    for (tag,ctr) in x {
+        toret.push((tag.to_string(),ctr.to_string()));
+    }
     return toret;
 }

@@ -1,12 +1,13 @@
 mod assignment_utils;
 use assignment_utils::{
     hashmap_to_taskvector, readin_tasks, taskvector_to_stringvect, turn_assignmentvector_into_pdf,
+    get_tag_counter_hashmap, convert_hashmap_to_tuplevector
 };
 mod rand_utils;
 use rand_utils::roll_die;
 mod ui;
 use ui::event::{Event, Events};
-use ui::{draw_current_task, draw_gauge, draw_task_table, App};
+use ui::{draw_current_task, draw_gauge, draw_task_table, draw_tag_counter, App};
 mod fileops_utils;
 mod settings_util;
 use std::error::Error;
@@ -26,10 +27,11 @@ fn choose_task(
     configured_relative_tag_weights: &mut Vec<f64>,
     configured_use_of_due_dates: &Vec<bool>,
 ) -> (Vec<String>, Vec<Vec<String>>) {
+    
     // read in tasks
     let tag_to_vector_map = readin_tasks(configured_task_path, &vector_of_tags);
 
-    // update tag weights when no tasks in task_file
+    // update tag weights when no tasks with that tag in task_file
     let mut xi: f64 = 0.0;
     let mut ctr = 0;
     for (tag, assign_vec) in &tag_to_vector_map {
@@ -79,8 +81,9 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     // initialize audio sink
     let sink = sound_utils::initialize_audio_sink();
-    //let source = sound_utils::initialize_audio_source(&sound_path)?.repeat_infinite();
-    //source = source.amplify(0.5);
+
+    // initialize tag counter
+    let mut tag_ctr = get_tag_counter_hashmap(&tags);
 
     // Choose initial task
     let (curr_task, items_to_list) =
@@ -95,6 +98,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     terminal.hide_cursor()?;
     let events = Events::new();
     let mut app = App::new();
+    app.completed = convert_hashmap_to_tuplevector(&tag_ctr);
     app.current_task = curr_task;
     app.items = items_to_list;
 
@@ -126,10 +130,14 @@ fn main() -> Result<(), Box<dyn Error>> {
             draw_gauge(&mut f, &app, chunks[2]);
             draw_task_table(&mut f, &app, chunks[1]);
             draw_current_task(&mut f, &app, mini_chunks[0]);
+            draw_tag_counter(&mut f, &app, mini_chunks[1]);
         })?;
 
         match events.next()? {
             Event::Input(input) => match input {
+                Key::Char('d') => {
+                    println!("{}", app.items[app.selected][1]);
+                }
                 Key::Char('q') => {
                     break;
                 }
@@ -169,8 +177,12 @@ fn main() -> Result<(), Box<dyn Error>> {
                         its_min_break_time = app.update(task_time);
                     }
 
-                    // if task time is up. reset task time
+                    // if task time is up. reset task time. increment counter
                     if its_min_break_time || its_max_break_time {
+                        let mut fin_task_tag = app.current_task[0].clone();
+                        fin_task_tag.pop();
+                        *tag_ctr.get_mut(&fin_task_tag).unwrap() += 1;
+                        app.completed = convert_hashmap_to_tuplevector(&tag_ctr);
                         sound_utils::playsound(&sound_path, &sink)?;
                         its_task_time = false;
                     };
@@ -193,7 +205,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
                 // time for big break?
                 } else if its_max_break_time {
-                    app.current_task = vec![String::from("TAKE A LONG CHILL PILL")];
+                    app.current_task = vec![String::from("TAKE A LOONG CHILL PILL")];
                     its_task_time = app.update(max_break_time);
 
                     // if big break over, reroll task
