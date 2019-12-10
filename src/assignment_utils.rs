@@ -155,11 +155,10 @@ pub fn get_tag_counter_hashmap(tag_vector: &Vec<String>) -> HashMap<String, i64>
     return toret;
 }
 
-
 pub fn convert_hashmap_to_tuplevector(x: &HashMap<String, i64>) -> Vec<(String, String)> {
-    let mut toret: Vec<(String,String)> = Vec::new();
-    for (tag,ctr) in x {
-        toret.push((tag.to_string(),ctr.to_string()));
+    let mut toret: Vec<(String, String)> = Vec::new();
+    for (tag, ctr) in x {
+        toret.push((tag.to_string(), ctr.to_string()));
     }
     return toret;
 }

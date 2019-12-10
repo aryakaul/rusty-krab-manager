@@ -1,15 +1,14 @@
 # this is an example configuration
 
 # path to the task file
-#task_filepath = "/home/luak/projects/git/rusty-manager/example/tasks"
-task_filepath = "/home/luak/todo"
+task_filepath = "/home/USERNAME/PATH_TO_TASKS"
 
 # path to notification sound
-sound_filepath = "/home/luak/projects/git/rusty-krab-manager/example/ocean_man.mp3"
+sound_filepath = "OCEAN_MAN_PATH"
 
 # put tags for each assignment. Order dictates the rest
 #tags = [ "rando-projects", "schoolwork", "personal" ]
-tags = [ "school", "research", "personal" ]
+tags = [ "schoolwork", "job", "other" ]
 
 # boolean to indicate if we should use due dates to weight the assignments
 ## when 'true' assignments due earlier will have a higher probability of 
@@ -17,12 +16,9 @@ tags = [ "school", "research", "personal" ]
 use_due_dates = [ false, true, false ]
 
 # timings for tasks/breaks/longbreaks in minutes
-#short_break_time = 5
-#long_break_time = 15
-#task_time = 30
 short_break_time = 1
-long_break_time = 1
-task_time = 1
+long_break_time = 5
+task_time = 20
 
 # number of small breaks before big break
 maxno_short_breaks = 2
@@ -40,4 +36,3 @@ thu = [ 0.7, 0.2, 0.1 ]
 fri = [ 0.6, 0.4, 0.0 ]
 sat = [ 0.2, 0.3, 0.5 ]
 sun = [ 0.3, 0.2, 0.5 ]
-

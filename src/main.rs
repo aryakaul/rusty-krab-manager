@@ -1,13 +1,13 @@
 mod assignment_utils;
 use assignment_utils::{
-    hashmap_to_taskvector, readin_tasks, taskvector_to_stringvect, turn_assignmentvector_into_pdf,
-    get_tag_counter_hashmap, convert_hashmap_to_tuplevector
+    convert_hashmap_to_tuplevector, get_tag_counter_hashmap, hashmap_to_taskvector, readin_tasks,
+    taskvector_to_stringvect, turn_assignmentvector_into_pdf,
 };
 mod rand_utils;
 use rand_utils::roll_die;
 mod ui;
 use ui::event::{Event, Events};
-use ui::{draw_current_task, draw_gauge, draw_task_table, draw_tag_counter, App};
+use ui::{draw_current_task, draw_gauge, draw_tag_counter, draw_task_table, App};
 mod fileops_utils;
 mod settings_util;
 use std::error::Error;
@@ -27,7 +27,6 @@ fn choose_task(
     configured_relative_tag_weights: &mut Vec<f64>,
     configured_use_of_due_dates: &Vec<bool>,
 ) -> (Vec<String>, Vec<Vec<String>>) {
-    
     // read in tasks
     let tag_to_vector_map = readin_tasks(configured_task_path, &vector_of_tags);
 
@@ -65,12 +64,11 @@ fn choose_task(
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-
     let mut default_config = dirs::config_dir().unwrap();
     default_config.push("rusty-krab-manager");
     default_config.push("config.toml");
     let default_config = default_config.to_str().unwrap();
-    
+
     // Read in configuration
     let (
         task_path,
@@ -169,16 +167,15 @@ fn main() -> Result<(), Box<dyn Error>> {
                 _ => {}
             },
             Event::Tick => {
-
                 if app.paused {
-                
                 } else if its_task_time {
-                // is it time for a task?
+                    // is it time for a task?
 
                     // is next break a long break?
                     if min_break_ctr == maxno_min_breaks {
                         its_max_break_time = app.update(task_time);
-                    } else { // otherwise have a min break
+                    } else {
+                        // otherwise have a min break
                         its_min_break_time = app.update(task_time);
                     }
 

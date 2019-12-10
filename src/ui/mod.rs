@@ -1,8 +1,8 @@
 pub mod event;
 use tui::backend::Backend;
-use tui::layout::{Alignment, Rect, Constraint};
+use tui::layout::{Alignment, Constraint, Rect};
 use tui::style::{Color, Modifier, Style};
-use tui::widgets::{Block, Borders, Gauge, Paragraph, Row, Table, Text, Widget, List};
+use tui::widgets::{Block, Borders, Gauge, List, Paragraph, Row, Table, Text, Widget};
 use tui::Frame;
 
 pub fn get_percentage_width(width: u16, percentage: f32) -> u16 {
@@ -17,7 +17,7 @@ pub struct App {
     pub progress: f64,
     pub current_task: Vec<String>,
     pub paused: bool,
-    pub completed: Vec<(String, String)>
+    pub completed: Vec<(String, String)>,
 }
 
 impl App {
@@ -119,14 +119,14 @@ where
         .render(&mut f, area);
 }
 
-pub fn draw_tag_counter<B>(mut f: &mut Frame<B>, app: &App, area:Rect)
-    where 
-        B: Backend,
+pub fn draw_tag_counter<B>(mut f: &mut Frame<B>, app: &App, area: Rect)
+where
+    B: Backend,
 {
-    let stuff = app.completed.iter().map(|(tag, ctr)| {
-        Text::styled(format!("{}: {}", tag, ctr),
-        Style::default())
-    });
+    let stuff = app
+        .completed
+        .iter()
+        .map(|(tag, ctr)| Text::styled(format!("{}: {}", tag, ctr), Style::default()));
 
     List::new(stuff)
         .block(Block::default().borders(Borders::ALL).title("COUNTER"))

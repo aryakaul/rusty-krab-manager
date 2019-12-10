@@ -1,12 +1,11 @@
+use std::error::Error;
 use std::fs::File;
 use std::io::BufReader;
-use std::error::Error;
 //use rodio::Source;
 use rodio::Sink;
 //use rodio::Decoder;
 
-pub fn playsound(filepath: &str, sink: &Sink) -> Result<(), Box<dyn Error>> 
-{
+pub fn playsound(filepath: &str, sink: &Sink) -> Result<(), Box<dyn Error>> {
     let file = File::open(filepath)?;
     let source = rodio::Decoder::new(BufReader::new(file))?;
     sink.append(source);
