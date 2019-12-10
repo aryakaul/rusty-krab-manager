@@ -1,6 +1,6 @@
 pub mod event;
 use tui::backend::Backend;
-use tui::layout::{Alignment, Rect};
+use tui::layout::{Alignment, Rect, Constraint};
 use tui::style::{Color, Modifier, Style};
 use tui::widgets::{Block, Borders, Gauge, Paragraph, Row, Table, Text, Widget, List};
 use tui::Frame;
@@ -91,9 +91,9 @@ where
     Table::new(header.into_iter(), rows)
         .block(Block::default().borders(Borders::ALL).title("ALL TASKS"))
         .widths(&[
-            get_percentage_width(area.width, 0.15),
-            get_percentage_width(area.width, 0.55),
-            get_percentage_width(area.width, 0.3),
+            Constraint::Length(get_percentage_width(area.width, 0.15)),
+            Constraint::Length(get_percentage_width(area.width, 0.55)),
+            Constraint::Length(get_percentage_width(area.width, 0.3)),
         ])
         .column_spacing(1)
         .render(&mut f, area);
