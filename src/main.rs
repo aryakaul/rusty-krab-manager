@@ -65,6 +65,11 @@ fn choose_task(
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
+
+    let mut default_config = dirs::config_dir().unwrap();
+    default_config.push("rusty-krab-manager");
+    default_config.push("config.toml");
+    let default_config = default_config.to_str().unwrap();
     
     // Read in configuration
     let (
@@ -77,7 +82,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         max_break_time,
         task_time,
         maxno_min_breaks,
-    ) = settings_util::readin_settings("/home/luak/projects/git/rusty-krab-manager/example/config")?;
+    ) = settings_util::readin_settings(default_config)?;
 
     // initialize audio sink
     let sink = sound_utils::initialize_audio_sink();
