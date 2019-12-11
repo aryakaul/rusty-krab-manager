@@ -9,3 +9,5 @@
 
 
 The rusty-krab-manager is a tool written in Rust designed to facilitate task management with inspiration from the pomodoro technique developed by Francesco Cirillo. 
+
+### More: \[[Installation](https://github.com/aryakaul/rusty-krab-manager/wiki/Installation)\] \[[Configuration](https://github.com/aryakaul/rusty-krab-manager/wiki/Configuration)\] \[[Usage](https://github.com/aryakaul/rusty-krab-manager/wiki/Usage)\]
