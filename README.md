@@ -5,10 +5,10 @@
 -->
 
 <h3 align="center"><img src="https://static.tvtropes.org/pmwiki/pub/images/the_spongebob_squarepants_movie_heartwarming.jpg" width="700px"></h3>
-<p align="center"> 🕰️ - let the krusty-krab manager manage your time </p>
+<p align="center"> 🕰️ - let spongebob manage your time </p>
 
 
-The rusty-krab-manager is a tool written in Rust designed to facilitate task management with inspiration from the pomodoro technique developed by Francesco Cirillo. 
+The rusty-krab-manager is a terminal user interface written in Rust designed to facilitate task management with inspiration from the pomodoro technique developed by Francesco Cirillo. 
 
 <img src="./example/example_scrot.png" alt="img" align="right" width="600px">
 
