@@ -1,6 +1,10 @@
 use chrono::{Datelike, Local};
 use std::error::Error;
 
+/*
+ * Take the settings file and convert it
+ * to a series of raw values to be used
+ */
 pub fn readin_settings(
     config_path: &str,
 ) -> Result<

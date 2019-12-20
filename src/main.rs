@@ -21,6 +21,14 @@ use tui::layout::{Constraint, Direction, Layout};
 use tui::Terminal;
 mod sound_utils;
 
+
+// this function reads in the task list provided in 
+// settings and then randomly selects one task to 
+// perform. the function returns two string vectors.
+// one corresponds to the specific task that was
+// chosen, and the other corresponds to the updated
+// table of tasks to display. these values are fed 
+// into the UI.
 fn choose_task(
     configured_task_path: &str,
     vector_of_tags: &Vec<String>,
@@ -64,12 +72,14 @@ fn choose_task(
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
+    
+    // instantiate the config file.
     let mut default_config = dirs::config_dir().unwrap();
     default_config.push("rusty-krab-manager");
     default_config.push("config.toml");
     let default_config = default_config.to_str().unwrap();
 
-    // Read in configuration
+    // set config variables
     let (
         task_path,
         sound_path,
@@ -92,7 +102,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let (curr_task, items_to_list) =
         choose_task(&task_path, &tags, &mut tag_weights, &use_due_dates);
 
-    // Terminal initialization
+    // Terminal initialization for UI
     let stdout = io::stdout().into_raw_mode()?;
     let stdout = MouseTerminal::from(stdout);
     let stdout = AlternateScreen::from(stdout);
@@ -136,6 +146,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             draw_tag_counter(&mut f, &app, mini_chunks[1]);
         })?;
 
+        // stuff here determines what is done based on user input
         match events.next()? {
             Event::Input(input) => match input {
                 Key::Char('d') => {
@@ -166,10 +177,16 @@ fn main() -> Result<(), Box<dyn Error>> {
                 }
                 _ => {}
             },
+
+            // what is done every 250 ms?
             Event::Tick => {
+                
+                // if app is paused do nothing.
                 if app.paused {
+                    //TODO implement some cue that app is paused
+                
                 } else if its_task_time {
-                    // is it time for a task?
+                // is it time for a task?
 
                     // is next break a long break?
                     if min_break_ctr == maxno_min_breaks {
@@ -180,6 +197,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     }
 
                     // if task time is up. reset task time. increment counter
+                    //  task tracker
                     if its_min_break_time || its_max_break_time {
                         let mut fin_task_tag = app.current_task[0].clone();
                         fin_task_tag.pop();

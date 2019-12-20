@@ -1,13 +1,13 @@
 use super::fileops_utils::lines_from_file;
+use chrono::prelude::*;
+use std::collections::HashMap;
+use std::fmt;
+
 
 //
 // THESE ARE ALL FUNCTIONS RELATED TO THE ASSIGNMENT
 // STRUCTURE
 //
-
-use chrono::prelude::*;
-use std::collections::HashMap;
-use std::fmt;
 
 /* Define 'Assignment' object */
 pub struct Assignment {
@@ -16,13 +16,21 @@ pub struct Assignment {
     pub due_time: String,
 }
 
+
+// when I print an Assignment object
+//  what happens?
 impl fmt::Display for Assignment {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "({}, {}, {})", self.name, self.tag, self.due_time)
     }
 }
 
+// these are functions related to assignments
 impl Assignment {
+    
+    // Turn the string due date associated with a task
+    // to the DateTime object associated with the chrono function
+    // note that we always assume Local timezone.
     pub fn convert_due_date(&self) -> DateTime<Local> {
         let convert_due_date = Local.datetime_from_str(&self.due_time, "%Y-%m-%d %H:%M");
         match convert_due_date {
@@ -78,6 +86,11 @@ pub fn turn_assignmentvector_into_pdf(assign: &Vec<Assignment>, use_due: bool) -
     }
 }
 
+/* 
+ * Read in the tasks from the task file path and config tag list
+ * Convert these into a hashmap linking each tag to a vector of 
+ * assignments associated with that tag
+ */
 pub fn readin_tasks(filepath: &str, tag_list: &Vec<String>) -> HashMap<String, Vec<Assignment>> {
     let lines = lines_from_file(filepath);
     let mut tag_to_taskvectors: HashMap<String, Vec<Assignment>> = HashMap::new();
@@ -111,7 +124,7 @@ pub fn readin_tasks(filepath: &str, tag_list: &Vec<String>) -> HashMap<String, V
     return tag_to_taskvectors;
 }
 
-// convert to a vector of strings
+// convert the hashmap to a vector of strings
 pub fn hashmap_to_taskvector(
     tagmap: HashMap<String, Vec<Assignment>>,
     tag_vector: &Vec<String>,
@@ -131,7 +144,7 @@ pub fn hashmap_to_taskvector(
     return toret;
 }
 
-// convert to a string vector with newline characters
+// convert a given assigment to a string vector with newline characters
 pub fn taskvector_to_stringvect(curr_assign: &Assignment) -> Vec<String> {
     let mut toret: Vec<String> = Vec::with_capacity(3);
     let newline = "\n";
@@ -147,6 +160,10 @@ pub fn taskvector_to_stringvect(curr_assign: &Assignment) -> Vec<String> {
     return toret;
 }
 
+/*
+ * Convert the vector of tags from the config file to a hashmap
+ * linking each tag to a integer counter
+ */
 pub fn get_tag_counter_hashmap(tag_vector: &Vec<String>) -> HashMap<String, i64> {
     let mut toret: HashMap<String, i64> = HashMap::new();
     for tags in tag_vector {
@@ -155,6 +172,12 @@ pub fn get_tag_counter_hashmap(tag_vector: &Vec<String>) -> HashMap<String, i64>
     return toret;
 }
 
+/* 
+ * Convert the task hashmap counter to a vector of string tuples
+ * to be displayed.
+ */
+
+//TODO make this consistent with the tag order found in the config file
 pub fn convert_hashmap_to_tuplevector(x: &HashMap<String, i64>) -> Vec<(String, String)> {
     let mut toret: Vec<(String, String)> = Vec::new();
     for (tag, ctr) in x {
