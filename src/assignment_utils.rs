@@ -101,6 +101,12 @@ pub fn readin_tasks(filepath: &str, tag_list: &Vec<String>) -> HashMap<String, V
 
     for line in lines {
         let task_vec: Vec<&str> = line.split(",").collect();
+        
+        // ignore all lines in todo list that do not have
+        //  3 lines
+        if task_vec.len() != 3 {
+           continue; 
+        }
         let tag = task_vec[0];
         if !tag_to_taskvectors.contains_key(tag) {
             println!("Tag shown in task list not described in config.");
