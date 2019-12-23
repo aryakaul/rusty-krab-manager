@@ -103,17 +103,17 @@ pub fn readin_tasks(filepath: &str, tag_list: &Vec<String>) -> HashMap<String, V
         let task_vec: Vec<&str> = line.split(",").collect();
         
         // ignore all lines in todo list that do not have
-        //  3 lines
+        //  3 fields
         if task_vec.len() != 3 {
            continue; 
         }
-        let tag = task_vec[0];
+        let tag = task_vec[0].trim();
         if !tag_to_taskvectors.contains_key(tag) {
             println!("Tag shown in task list not described in config.");
             panic!("{}", tag);
         };
-        let name = task_vec[1];
-        let due_date = task_vec[2];
+        let name = task_vec[1].trim();
+        let due_date = task_vec[2].trim();
         let new_assign = Assignment {
             name: String::from(name),
             tag: String::from(tag),
