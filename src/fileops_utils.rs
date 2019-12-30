@@ -4,7 +4,6 @@ use std::{
     path::Path,
 };
 
-
 /*
  * Read in a file and convert that into a vector of
  * strings to be parsed

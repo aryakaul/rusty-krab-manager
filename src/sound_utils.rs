@@ -1,7 +1,7 @@
+use rodio::Sink;
 use std::error::Error;
 use std::fs::File;
 use std::io::BufReader;
-use rodio::Sink;
 
 /*
  * Play a given sound given a file path to that sound and

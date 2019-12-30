@@ -21,13 +21,12 @@ use tui::layout::{Constraint, Direction, Layout};
 use tui::Terminal;
 mod sound_utils;
 
-
-// this function reads in the task list provided in 
-// settings and then randomly selects one task to 
+// this function reads in the task list provided in
+// settings and then randomly selects one task to
 // perform. the function returns two string vectors.
 // one corresponds to the specific task that was
 // chosen, and the other corresponds to the updated
-// table of tasks to display. these values are fed 
+// table of tasks to display. these values are fed
 // into the UI.
 fn choose_task(
     configured_task_path: &str,
@@ -72,7 +71,6 @@ fn choose_task(
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    
     // instantiate the config file.
     let mut default_config = dirs::config_dir().unwrap();
     default_config.push("rusty-krab-manager");
@@ -135,7 +133,6 @@ fn main() -> Result<(), Box<dyn Error>> {
                     .as_ref(),
                 )
                 .split(f.size());
-
             let mini_chunks = Layout::default()
                 .direction(Direction::Horizontal)
                 .constraints([Constraint::Percentage(75), Constraint::Percentage(25)].as_ref())
@@ -158,8 +155,10 @@ fn main() -> Result<(), Box<dyn Error>> {
                 Key::Char('p') => {
                     if app.paused {
                         app.paused = false;
+                        app.current_task.pop();
                     } else {
                         app.paused = true;
+                        app.current_task.push("Paused".to_string());
                     }
                 }
                 Key::Down | Key::Char('j') => {
@@ -180,13 +179,10 @@ fn main() -> Result<(), Box<dyn Error>> {
 
             // what is done every 250 ms?
             Event::Tick => {
-                
                 // if app is paused do nothing.
                 if app.paused {
-                    //TODO implement some cue that app is paused
-                
                 } else if its_task_time {
-                // is it time for a task?
+                    // is it time for a task?
 
                     // is next break a long break?
                     if min_break_ctr == maxno_min_breaks {

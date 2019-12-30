@@ -29,7 +29,6 @@ pub struct App {
 }
 
 impl App {
-    
     /*
      * Instantiate the default application.
      * If all goes according to plan none of these
@@ -63,7 +62,7 @@ impl App {
 
     /*
      * Function to update the app.
-     * This runs every 250 milliseconds and returns 
+     * This runs every 250 milliseconds and returns
      * true when the app hits 100%
      */
     pub fn update(&mut self, minutes: i64) -> bool {
@@ -111,8 +110,8 @@ where
 
     let selected_style = Style::default().fg(Color::Yellow).modifier(Modifier::BOLD);
     let normal_style = Style::default().fg(Color::White);
-    
-    // code snippet based on spotify-tui. essentially allows 
+
+    // code snippet based on spotify-tui. essentially allows
     // scrollable tables
     let rows = app.items.iter().skip(offset).enumerate().map(|(i, item)| {
         if Some(i) == app.selected.checked_sub(offset) {
@@ -121,7 +120,7 @@ where
             Row::StyledData(item.into_iter(), normal_style)
         }
     });
-    
+
     // instantiate the table with the tasks provided in the task list
     Table::new(header.into_iter(), rows)
         .block(Block::default().borders(Borders::ALL).title("ALL TASKS"))
@@ -147,7 +146,7 @@ where
         Style::default().bg(Color::Green).modifier(Modifier::BOLD),
     );
     new_shit.push(x);
-    
+
     // push whatever the current task is
     for i in 0..app.current_task.len() {
         new_shit.push(Text::raw(&app.current_task[i]));

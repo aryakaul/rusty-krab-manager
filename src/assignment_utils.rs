@@ -3,7 +3,6 @@ use chrono::prelude::*;
 use std::collections::HashMap;
 use std::fmt;
 
-
 //
 // THESE ARE ALL FUNCTIONS RELATED TO THE ASSIGNMENT
 // STRUCTURE
@@ -16,7 +15,6 @@ pub struct Assignment {
     pub due_time: String,
 }
 
-
 // when I print an Assignment object
 //  what happens?
 impl fmt::Display for Assignment {
@@ -27,7 +25,6 @@ impl fmt::Display for Assignment {
 
 // these are functions related to assignments
 impl Assignment {
-    
     // Turn the string due date associated with a task
     // to the DateTime object associated with the chrono function
     // note that we always assume Local timezone.
@@ -86,9 +83,9 @@ pub fn turn_assignmentvector_into_pdf(assign: &Vec<Assignment>, use_due: bool) -
     }
 }
 
-/* 
+/*
  * Read in the tasks from the task file path and config tag list
- * Convert these into a hashmap linking each tag to a vector of 
+ * Convert these into a hashmap linking each tag to a vector of
  * assignments associated with that tag
  */
 pub fn readin_tasks(filepath: &str, tag_list: &Vec<String>) -> HashMap<String, Vec<Assignment>> {
@@ -101,11 +98,11 @@ pub fn readin_tasks(filepath: &str, tag_list: &Vec<String>) -> HashMap<String, V
 
     for line in lines {
         let task_vec: Vec<&str> = line.split(",").collect();
-        
+
         // ignore all lines in todo list that do not have
         //  3 fields
         if task_vec.len() != 3 {
-           continue; 
+            continue;
         }
         let tag = task_vec[0].trim();
         if !tag_to_taskvectors.contains_key(tag) {
@@ -178,7 +175,7 @@ pub fn get_tag_counter_hashmap(tag_vector: &Vec<String>) -> HashMap<String, i64>
     return toret;
 }
 
-/* 
+/*
  * Convert the task hashmap counter to a vector of string tuples
  * to be displayed.
  */
