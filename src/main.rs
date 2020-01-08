@@ -146,8 +146,12 @@ fn main() -> Result<(), Box<dyn Error>> {
         // stuff here determines what is done based on user input
         match events.next()? {
             Event::Input(input) => match input {
-                Key::Char('d') => {
-                    println!("{}", app.items[app.selected][1]);
+                Key::Char('r') => {
+                    let (curr_task, items_to_list) =
+                        choose_task(&task_path, &tags, &mut tag_weights, &use_due_dates);
+                    app.current_task = curr_task;
+                    app.items = items_to_list;
+                    app.progress = 0.0;
                 }
                 Key::Char('q') => {
                     break;
