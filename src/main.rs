@@ -109,7 +109,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     terminal.hide_cursor()?;
     let events = Events::new();
     let mut app = App::new();
-    app.completed = convert_hashmap_to_tuplevector(&tag_ctr);
+    app.completed = convert_hashmap_to_tuplevector(&tag_ctr, &tags);
     app.current_task = curr_task;
     app.items = items_to_list;
 
@@ -198,14 +198,14 @@ fn main() -> Result<(), Box<dyn Error>> {
                         let mut fin_task_tag = app.current_task[0].clone();
                         fin_task_tag.pop();
                         *tag_ctr.get_mut(&fin_task_tag).unwrap() += 1;
-                        app.completed = convert_hashmap_to_tuplevector(&tag_ctr);
+                        app.completed = convert_hashmap_to_tuplevector(&tag_ctr, &tags);
                         sound_utils::playsound(&sound_path, &sink)?;
                         its_task_time = false;
                     };
 
                 // time for a small break?
                 } else if its_min_break_time {
-                    app.current_task = vec![String::from("TAKE A CHILL PILL")];
+                    app.current_task = vec![String::from("TAKE A CHILL PILL\n")];
                     its_task_time = app.update(min_break_time);
 
                     // if small break over, reroll task
@@ -221,7 +221,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
                 // time for big break?
                 } else if its_max_break_time {
-                    app.current_task = vec![String::from("TAKE A LOONG CHILL PILL")];
+                    app.current_task = vec![String::from("TAKE A LOONG CHILL PILL\n")];
                     its_task_time = app.update(max_break_time);
 
                     // if big break over, reroll task

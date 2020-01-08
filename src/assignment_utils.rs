@@ -99,9 +99,9 @@ pub fn readin_tasks(filepath: &str, tag_list: &Vec<String>) -> HashMap<String, V
     for line in lines {
         let task_vec: Vec<&str> = line.split(",").collect();
 
-        // ignore all lines in todo list that do not have
-        //  3 fields
-        if task_vec.len() != 3 {
+        // ignore all lines in todo list that do not have 3
+        // fields or that start with '#'
+        if task_vec.len() != 3 || task_vec[0].starts_with('#') {
             continue;
         }
         let tag = task_vec[0].trim();
@@ -179,12 +179,11 @@ pub fn get_tag_counter_hashmap(tag_vector: &Vec<String>) -> HashMap<String, i64>
  * Convert the task hashmap counter to a vector of string tuples
  * to be displayed.
  */
-
-//TODO make this consistent with the tag order found in the config file
-pub fn convert_hashmap_to_tuplevector(x: &HashMap<String, i64>) -> Vec<(String, String)> {
+pub fn convert_hashmap_to_tuplevector(x: &HashMap<String, i64>, tag: &Vec<String>) -> Vec<(String, String)> {
     let mut toret: Vec<(String, String)> = Vec::new();
-    for (tag, ctr) in x {
-        toret.push((tag.to_string(), ctr.to_string()));
+    for tags in tag {
+        let ctr = x.get(tags).unwrap();
+        toret.push((tags.to_string(), ctr.to_string()));
     }
     return toret;
 }
