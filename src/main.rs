@@ -146,12 +146,23 @@ fn main() -> Result<(), Box<dyn Error>> {
         // stuff here determines what is done based on user input
         match events.next()? {
             Event::Input(input) => match input {
-                Key::Char('r') => {
-                    let (curr_task, items_to_list) =
-                        choose_task(&task_path, &tags, &mut tag_weights, &use_due_dates);
-                    app.current_task = curr_task;
-                    app.items = items_to_list;
-                    app.progress = 0.0;
+                Key::Char('c') => {
+                    if its_task_time {
+                        let mut fin_task_tag = app.current_task[0].clone();
+                        fin_task_tag.pop();
+                        *tag_ctr.get_mut(&fin_task_tag).unwrap() += 1;
+                        app.completed = convert_hashmap_to_tuplevector(&tag_ctr, &tags);
+                        let (curr_task, items_to_list) =
+                            choose_task(&task_path, &tags, &mut tag_weights, &use_due_dates);
+                        app.current_task = curr_task;
+                        app.items = items_to_list;
+                    } else {
+
+                    }
+
+                }
+                Key::Char('f') => {
+                    app.progress = 1.0;
                 }
                 Key::Char('q') => {
                     break;
@@ -162,7 +173,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                         app.current_task.pop();
                     } else {
                         app.paused = true;
-                        app.current_task.push("Paused".to_string());
+                        app.current_task.push("PAUSED".to_string());
                     }
                 }
                 Key::Down | Key::Char('j') => {
