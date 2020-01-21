@@ -13,3 +13,6 @@ The rusty-krab-manager is a terminal user interface written in Rust designed to 
 <img src="./example/example_scrot.png" alt="img" align="right" width="600px">
 
 ### More: \[[Installation](https://github.com/aryakaul/rusty-krab-manager/wiki/Installation)\] \[[Configuration](https://github.com/aryakaul/rusty-krab-manager/wiki/Configuration)\] \[[Usage](https://github.com/aryakaul/rusty-krab-manager/wiki/Usage)\] \[[FAQ](https://github.com/aryakaul/rusty-krab-manager/wiki/FAQ)\]
+
+
+Note: This was my first experience coding in Rust so it is extremely likely there are things that could be done better. As a result, any and all pull requests are welcome!
