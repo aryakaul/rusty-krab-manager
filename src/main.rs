@@ -159,8 +159,14 @@ fn main() -> Result<(), Box<dyn Error>> {
                     } else {
 
                     }
-
                 }
+
+                /*
+                 * Refresh config settings.
+                Key::Char('r') => {
+                    
+                }
+                */
                 Key::Char('f') => {
                     app.progress = 1.0;
                 }
