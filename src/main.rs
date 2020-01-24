@@ -157,16 +157,15 @@ fn main() -> Result<(), Box<dyn Error>> {
                         app.current_task = curr_task;
                         app.items = items_to_list;
                     } else {
-
                     }
                 }
-
+                
                 /*
-                 * Refresh config settings.
+                 * Refresh config file options
                 Key::Char('r') => {
-                    
                 }
                 */
+
                 Key::Char('f') => {
                     app.progress = 1.0;
                 }

@@ -179,7 +179,10 @@ pub fn get_tag_counter_hashmap(tag_vector: &Vec<String>) -> HashMap<String, i64>
  * Convert the task hashmap counter to a vector of string tuples
  * to be displayed.
  */
-pub fn convert_hashmap_to_tuplevector(x: &HashMap<String, i64>, tag: &Vec<String>) -> Vec<(String, String)> {
+pub fn convert_hashmap_to_tuplevector(
+    x: &HashMap<String, i64>,
+    tag: &Vec<String>,
+) -> Vec<(String, String)> {
     let mut toret: Vec<(String, String)> = Vec::new();
     for tags in tag {
         let ctr = x.get(tags).unwrap();
