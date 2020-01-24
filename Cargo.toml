@@ -10,6 +10,7 @@ repository = "https://github.com/aryakaul/rusty-krab-manager"
 documentation = "https://github.com/aryakaul/rusty-krab-manager/wiki"
 keywords = ["time-management", "tui", "rusty-krab-manager"]
 categories = ["command-line-utilities"]
+exclude = ["example/*"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
