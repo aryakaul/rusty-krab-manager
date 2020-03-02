@@ -160,11 +160,12 @@ fn main() -> Result<(), Box<dyn Error>> {
                     }
                 }
                 
-                /*
-                 * Refresh config file options
                 Key::Char('r') => {
+                    let (curr_task, items_to_list) =
+                        choose_task(&task_path, &tags, &mut tag_weights, &use_due_dates);
+                    app.current_task = curr_task;
+                    app.items = items_to_list;
                 }
-                */
 
                 Key::Char('f') => {
                     app.progress = 1.0;
