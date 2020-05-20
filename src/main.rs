@@ -29,15 +29,22 @@ mod sound_utils;
 // table of tasks to display. these values are fed
 // into the UI.
 fn choose_task(
+   
+    // read in tasks
+    //  from the task file, the vector of tags,
+    //  the vector of tag weights, and the 
+    //  vector of booleans denoting whether or not to
+    //  use tag weights
     configured_task_path: &str,
     vector_of_tags: &Vec<String>,
     configured_relative_tag_weights: &mut Vec<f64>,
     configured_use_of_due_dates: &Vec<bool>,
 ) -> (Vec<String>, Vec<Vec<String>>) {
-    // read in tasks
     let tag_to_vector_map = readin_tasks(configured_task_path, &vector_of_tags);
 
     // update tag weights when no tasks with that tag in task_file
+    // TODO make sure tag vector is still a valid pdf i.e. still sums to 1 
+    //      or does this actually happen?
     let mut xi: f64 = 0.0;
     let mut ctr = 0;
     for (tag, assign_vec) in &tag_to_vector_map {
@@ -57,20 +64,25 @@ fn choose_task(
     }
 
     // roll a assignment
+    // first pick a tag to get an assignment from
     let tag_roll = roll_die(configured_relative_tag_weights.to_vec());
     let chosen_tag = &vector_of_tags[tag_roll];
+    
+    // then get the vector of assignments assigned to that tag
     let assignvector = tag_to_vector_map.get(chosen_tag).unwrap();
+    // turn this into a pdf and roll an assignment
     let assignvector_pdf =
         turn_assignmentvector_into_pdf(&assignvector, configured_use_of_due_dates[tag_roll]);
     let chosen_assign = &assignvector[roll_die(assignvector_pdf)];
 
-    // generate table string and current task string
+    // generate table string and current task string. this is for the tui
     let assign_string = taskvector_to_stringvect(chosen_assign);
     let string_alltask_vec = hashmap_to_taskvector(tag_to_vector_map, &vector_of_tags);
     return (assign_string, string_alltask_vec);
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
+    
     // instantiate the config file.
     let mut default_config = dirs::config_dir().unwrap();
     default_config.push("rusty-krab-manager");
