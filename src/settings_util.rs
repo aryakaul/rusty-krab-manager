@@ -1,6 +1,6 @@
 use chrono::{Datelike, Local};
-use std::path::Path;
 use std::error::Error;
+use std::path::Path;
 
 /*
  * Take the settings file and convert it
@@ -28,12 +28,12 @@ pub fn readin_settings(
 
     // get the paths to the task file and sound file
     let task_path = settings.get_str("task_filepath")?;
-    if ! Path::new(&task_path).exists() {
+    if !Path::new(&task_path).exists() {
         panic!("task filepath does not exist");
     }
 
     let sound_path = settings.get_str("sound_filepath")?;
-    if ! Path::new(&sound_path).exists() {
+    if !Path::new(&sound_path).exists() {
         panic!("sound filepath does not exist");
     }
 
@@ -41,7 +41,7 @@ pub fn readin_settings(
     let tags = settings.get_array("tags")?;
     let tags: Vec<String> = tags.into_iter().map(|i| i.into_str().unwrap()).collect();
     let taglen = tags.len();
-   
+
     // get boolean vector of whether to use due dates or not
     let use_due_dates = settings.get_array("use_due_dates")?;
     let use_due_dates: Vec<bool> = use_due_dates
@@ -52,7 +52,6 @@ pub fn readin_settings(
         panic!("use_due_dates vector length does not match number of tags in config")
     }
 
-    
     // get weights tags for all days of the week
     let weights_mon = settings.get_array("weights.mon")?;
     let weights_mon: Vec<f64> = weights_mon
@@ -111,9 +110,12 @@ pub fn readin_settings(
     }
     let tag_weights_sum: f64 = tag_weights.iter().sum();
     if tag_weights_sum as f32 != 1.0 {
-        panic!("current day tag weights do not sum to 1. they sum to {}", tag_weights_sum)
+        panic!(
+            "current day tag weights do not sum to 1. they sum to {}",
+            tag_weights_sum
+        )
     }
-    
+
     let min_break_time = settings.get_int("short_break_time")?;
     let max_break_time = settings.get_int("long_break_time")?;
     let task_time = settings.get_int("task_time")?;

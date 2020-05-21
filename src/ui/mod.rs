@@ -2,7 +2,7 @@ pub mod event;
 use tui::backend::Backend;
 use tui::layout::{Alignment, Constraint, Rect};
 use tui::style::{Color, Modifier, Style};
-use tui::widgets::{Block, Borders, Gauge, List, Paragraph, Row, Table, Text, Widget};
+use tui::widgets::{Block, Borders, Gauge, List, Paragraph, Row, Table, Text};
 use tui::Frame;
 
 /*
@@ -79,15 +79,15 @@ impl App {
  * Draw the gauge used to showcase the remaining
  * amount of time left to do whatever.
  */
-pub fn draw_gauge<B>(mut f: &mut Frame<B>, app: &App, area: Rect)
+pub fn draw_gauge<B>(f: &mut Frame<B>, app: &App, area: Rect)
 where
     B: Backend,
 {
-    Gauge::default()
+    let gauge = Gauge::default()
         .block(Block::default().title("TIME LEFT").borders(Borders::ALL))
         .style(Style::default().fg(Color::Yellow))
-        .ratio(app.progress)
-        .render(&mut f, area);
+        .ratio(app.progress);
+    f.render_widget(gauge, area);
 }
 
 /*
@@ -95,12 +95,11 @@ where
  * the rusty-krab-manager has read from the given
  * task list
  */
-pub fn draw_task_table<B>(mut f: &mut Frame<B>, app: &App, area: Rect)
+pub fn draw_task_table<B>(f: &mut Frame<B>, app: &App, area: Rect)
 where
     B: Backend,
 {
     // set basic values
-    let header = ["\nTag", "\nName", "\nDue Date"];
     let padding = 5;
     let offset = area
         .height
@@ -110,6 +109,12 @@ where
 
     let selected_style = Style::default().fg(Color::Yellow).modifier(Modifier::BOLD);
     let normal_style = Style::default().fg(Color::White);
+    let header = ["\nTag", "\nName", "\nDue Date"];
+    let widths = [
+        Constraint::Length(get_percentage_width(area.width, 0.15)),
+        Constraint::Length(get_percentage_width(area.width, 0.55)),
+        Constraint::Length(get_percentage_width(area.width, 0.55)),
+    ];
 
     // code snippet based on spotify-tui. essentially allows
     // scrollable tables
@@ -122,21 +127,18 @@ where
     });
 
     // instantiate the table with the tasks provided in the task list
-    Table::new(header.into_iter(), rows)
+    let task_table = Table::new(header.into_iter(), rows)
         .block(Block::default().borders(Borders::ALL).title("ALL TASKS"))
-        .widths(&[
-            Constraint::Length(get_percentage_width(area.width, 0.15)),
-            Constraint::Length(get_percentage_width(area.width, 0.55)),
-            Constraint::Length(get_percentage_width(area.width, 0.3)),
-        ])
-        .column_spacing(1)
-        .render(&mut f, area);
+        .widths(&widths)
+        .column_spacing(1);
+
+    f.render_widget(task_table, area);
 }
 
 /*
  * Draw the current task that has been selected.
  */
-pub fn draw_current_task<B>(mut f: &mut Frame<B>, app: &App, area: Rect)
+pub fn draw_current_task<B>(f: &mut Frame<B>, app: &App, area: Rect)
 where
     B: Backend,
 {
@@ -151,18 +153,18 @@ where
     for i in 0..app.current_task.len() {
         new_shit.push(Text::raw(&app.current_task[i]));
     }
-    Paragraph::new(new_shit.iter())
+    let task_paragraph = Paragraph::new(new_shit.iter())
         .block(Block::default().title("CURRENT TASK").borders(Borders::ALL))
         .alignment(Alignment::Center)
-        .wrap(true)
-        .render(&mut f, area);
+        .wrap(true);
+    f.render_widget(task_paragraph, area);
 }
 
 /*
  * Draw the counter to keep track of the number
  * of tags done
  */
-pub fn draw_tag_counter<B>(mut f: &mut Frame<B>, app: &App, area: Rect)
+pub fn draw_tag_counter<B>(f: &mut Frame<B>, app: &App, area: Rect)
 where
     B: Backend,
 {
@@ -171,8 +173,7 @@ where
         .iter()
         .map(|(tag, ctr)| Text::styled(format!("{}: {}", tag, ctr), Style::default()));
 
-    List::new(stuff)
-        .block(Block::default().borders(Borders::ALL).title("COUNTER"))
-        //.start_corner(Corner::BottomRight)
-        .render(&mut f, area);
+    let task_ctr = List::new(stuff).block(Block::default().borders(Borders::ALL).title("COUNTER"));
+    //.start_corner(Corner::BottomRight);
+    f.render_widget(task_ctr, area);
 }

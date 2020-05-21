@@ -12,7 +12,10 @@ use rand::Rng;
 fn make_cdf(pdf: Vec<f64>) -> Vec<f64> {
     let sum: f64 = pdf.iter().sum();
     if sum as f32 != 1.0 {
-        panic!("Probability distribution does not sum to 1! Instead sums to {}", sum as f32);
+        panic!(
+            "Probability distribution does not sum to 1! Instead sums to {}",
+            sum as f32
+        );
     }
     let mut cdf: Vec<f64> = Vec::with_capacity(pdf.len());
     cdf.push(pdf[0]);
