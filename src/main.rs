@@ -48,10 +48,11 @@ fn choose_task(
     let mut xi: f64 = 0.0;
     let mut ctr = 0;
     for (tag, assign_vec) in &tag_to_vector_map {
-        if assign_vec.len() == 0 {
-            let tag_loc = vector_of_tags.iter().position(|z| &z == &tag).unwrap();
-            xi += configured_relative_tag_weights[tag_loc];
-            configured_relative_tag_weights[tag_loc] = 0.0;
+        let tag_idx = vector_of_tags.iter().position(|z| &z == &tag).unwrap();
+        let tag_weight = configured_relative_tag_weights[tag_idx];
+        if assign_vec.len() == 0 || tag_weight == 0.0 {
+            xi += tag_weight;
+            configured_relative_tag_weights[tag_idx] = 0.0;
         } else {
             ctr += 1
         }
@@ -62,6 +63,14 @@ fn choose_task(
             configured_relative_tag_weights[i] += to_add;
         }
     }
+    /* helpful for debug
+    println!("Calculated tag weights");
+    for (tag, _assign_vec) in &tag_to_vector_map {
+        let tag_idx = vector_of_tags.iter().position(|z| &z == &tag).unwrap();
+        let tag_weight = configured_relative_tag_weights[tag_idx];
+        println!("\t{}:\t{}", tag, tag_weight);
+    }
+    */
 
     // roll a assignment
     // first pick a tag to get an assignment from
@@ -155,9 +164,11 @@ fn main() -> Result<(), Box<dyn Error>> {
             draw_tag_counter(&mut f, &app, mini_chunks[1]);
         })?;
 
-        // stuff here determines what is done based on user input
+        // keybindings
         match events.next()? {
             Event::Input(input) => match input {
+                
+                // denote the currently selected task as complete and reroll a new one
                 Key::Char('c') => {
                     if its_task_time {
                         let mut fin_task_tag = app.current_task[0].clone();
@@ -172,6 +183,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     }
                 }
                 
+                // reroll the currently selected task without marking current task as complete
                 Key::Char('r') => {
                     let (curr_task, items_to_list) =
                         choose_task(&task_path, &tags, &mut tag_weights, &use_due_dates);
@@ -179,12 +191,17 @@ fn main() -> Result<(), Box<dyn Error>> {
                     app.items = items_to_list;
                 }
 
+                // fast forward timer to the end
                 Key::Char('f') => {
                     app.progress = 1.0;
                 }
+                
+                // QUIT
                 Key::Char('q') => {
                     break;
                 }
+                
+                // pause rkm
                 Key::Char('p') => {
                     if app.paused {
                         app.paused = false;
@@ -194,6 +211,8 @@ fn main() -> Result<(), Box<dyn Error>> {
                         app.current_task.push("PAUSED".to_string());
                     }
                 }
+                
+                // move cursor down or up on task table
                 Key::Down | Key::Char('j') => {
                     app.selected += 1;
                     if app.selected > app.items.len() - 1 {

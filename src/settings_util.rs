@@ -110,8 +110,8 @@ pub fn readin_settings(
         panic!("current day tag weights do not match number of tags in config")
     }
     let tag_weights_sum: f64 = tag_weights.iter().sum();
-    if tag_weights_sum != 1.0 {
-        panic!("current day tag weights do not sum to 1")
+    if tag_weights_sum as f32 != 1.0 {
+        panic!("current day tag weights do not sum to 1. they sum to {}", tag_weights_sum)
     }
     
     let min_break_time = settings.get_int("short_break_time")?;
