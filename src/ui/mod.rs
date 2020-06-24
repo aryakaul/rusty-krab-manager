@@ -127,7 +127,7 @@ where
     });
 
     // instantiate the table with the tasks provided in the task list
-    let task_table = Table::new(header.into_iter(), rows)
+    let task_table = Table::new(header.iter(), rows)
         .block(Block::default().borders(Borders::ALL).title("ALL TASKS"))
         .widths(&widths)
         .column_spacing(1);

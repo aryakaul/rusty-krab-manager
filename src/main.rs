@@ -167,7 +167,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             Event::Input(input) => match input {
                 // denote the currently selected task as complete and reroll a new one
                 Key::Char('c') => {
-                    if its_task_time {
+                    if its_task_time && ! app.paused {
                         let mut fin_task_tag = app.current_task[0].clone();
                         fin_task_tag.pop();
                         *tag_ctr.get_mut(&fin_task_tag).unwrap() += 1;
@@ -182,10 +182,13 @@ fn main() -> Result<(), Box<dyn Error>> {
 
                 // reroll the currently selected task without marking current task as complete
                 Key::Char('r') => {
-                    let (curr_task, items_to_list) =
-                        choose_task(&task_path, &tags, &mut tag_weights, &use_due_dates);
-                    app.current_task = curr_task;
-                    app.items = items_to_list;
+                    if its_task_time && ! app.paused{
+                        let (curr_task, items_to_list) =
+                            choose_task(&task_path, &tags, &mut tag_weights, &use_due_dates);
+                        app.current_task = curr_task;
+                        app.items = items_to_list;
+                    } else {
+                    }
                 }
 
                 // fast forward timer to the end
