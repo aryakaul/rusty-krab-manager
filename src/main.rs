@@ -1,15 +1,17 @@
 mod assignment_utils;
+mod rand_utils;
+mod ui;
+mod fileops_utils;
+mod settings_util;
+mod sound_utils;
+
 use assignment_utils::{
     convert_hashmap_to_tuplevector, get_tag_counter_hashmap, hashmap_to_taskvector, readin_tasks,
     taskvector_to_stringvect, turn_assignmentvector_into_pdf,
 };
-mod rand_utils;
 use rand_utils::roll_die;
-mod ui;
 use ui::event::{Event, Events};
-use ui::{draw_current_task, draw_gauge, draw_tag_counter, draw_task_table, App};
-mod fileops_utils;
-mod settings_util;
+use ui::{draw_current_task, draw_gauge, draw_tag_counter, draw_task_table, draw_help, App, HelpTable};
 use std::error::Error;
 use std::io;
 use termion::event::Key;
@@ -19,7 +21,6 @@ use termion::screen::AlternateScreen;
 use tui::backend::TermionBackend;
 use tui::layout::{Constraint, Direction, Layout};
 use tui::Terminal;
-mod sound_utils;
 
 // this function reads in the task list provided in
 // settings and then randomly selects one task to
@@ -42,8 +43,6 @@ fn choose_task(
     let tag_to_vector_map = readin_tasks(configured_task_path, &vector_of_tags);
 
     // update tag weights when no tasks with that tag in task_file
-    // TODO make sure tag vector is still a valid pdf i.e. still sums to 1
-    //      or does this actually happen?
     let mut xi: f64 = 0.0;
     let mut ctr = 0;
     for (tag, assign_vec) in &tag_to_vector_map {
@@ -126,6 +125,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let backend = TermionBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
     terminal.hide_cursor()?;
+    
     let events = Events::new();
     let mut app = App::new();
     app.completed = convert_hashmap_to_tuplevector(&tag_ctr, &tags);
@@ -137,34 +137,47 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut its_task_time = true;
     let mut its_min_break_time = false;
     let mut its_max_break_time = false;
+    
+    // create help table and flag
+    let mut on_help_page = false;
+    let mut help_table = HelpTable::new();
 
     // Enter into UI drawing infinite loop
     loop {
         terminal.draw(|mut f| {
-            let chunks = Layout::default()
-                .direction(Direction::Vertical)
-                .constraints(
-                    [
-                        Constraint::Percentage(30),
-                        Constraint::Percentage(50),
-                        Constraint::Percentage(20),
-                    ]
-                    .as_ref(),
-                )
-                .split(f.size());
-            let mini_chunks = Layout::default()
-                .direction(Direction::Horizontal)
-                .constraints([Constraint::Percentage(75), Constraint::Percentage(25)].as_ref())
-                .split(chunks[0]);
-            draw_gauge(&mut f, &app, chunks[2]);
-            draw_task_table(&mut f, &app, chunks[1]);
-            draw_current_task(&mut f, &app, mini_chunks[0]);
-            draw_tag_counter(&mut f, &app, mini_chunks[1]);
+            if !on_help_page {
+                let chunks = Layout::default()
+                    .direction(Direction::Vertical)
+                    .constraints(
+                        [
+                            Constraint::Percentage(30),
+                            Constraint::Percentage(50),
+                            Constraint::Percentage(20),
+                        ]
+                        .as_ref(),
+                    )
+                    .split(f.size());
+                let mini_chunks = Layout::default()
+                    .direction(Direction::Horizontal)
+                    .constraints([Constraint::Percentage(75), Constraint::Percentage(25)].as_ref())
+                    .split(chunks[0]);
+                draw_gauge(&mut f, &app, chunks[2]);
+                draw_task_table(&mut f, &app, chunks[1]);
+                draw_current_task(&mut f, &app, mini_chunks[0]);
+                draw_tag_counter(&mut f, &app, mini_chunks[1]);
+            } else {
+                let rects = Layout::default()
+                    .constraints([Constraint::Percentage(100)].as_ref())
+                    .margin(5)
+                    .split(f.size());
+                draw_help(&mut f, &mut help_table, rects[0]);
+            }
         })?;
 
         // keybindings
         match events.next()? {
             Event::Input(input) => match input {
+                
                 // denote the currently selected task as complete and reroll a new one
                 Key::Char('c') => {
                     if its_task_time && ! app.paused {
@@ -214,16 +227,32 @@ fn main() -> Result<(), Box<dyn Error>> {
 
                 // move cursor down or up on task table
                 Key::Down | Key::Char('j') => {
-                    app.selected += 1;
-                    if app.selected > app.items.len() - 1 {
-                        app.selected = 0
+                    if !on_help_page {
+                        app.selected += 1;
+                        if app.selected > app.items.len() - 1 {
+                            app.selected = 0
+                        }
+                    } else {
+                        help_table.next();
                     }
                 }
                 Key::Up | Key::Char('k') => {
-                    if app.selected > 0 {
-                        app.selected -= 1;
+                    if !on_help_page {
+                        if app.selected > 0 {
+                            app.selected -= 1;
+                        } else {
+                            app.selected = app.items.len() - 1;
+                        }
                     } else {
-                        app.selected = app.items.len() - 1;
+                        help_table.previous();
+                    }
+                }
+                
+                Key::Char('h') => {
+                    if !on_help_page {
+                        on_help_page = true;
+                    } else {
+                        on_help_page = false;
                     }
                 }
                 _ => {}

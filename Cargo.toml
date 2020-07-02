@@ -1,6 +1,6 @@
 [package]
 name = "rusty-krab-manager"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["luak <arya_kaul@g.harvard.edu>"]
 edition = "2018"
 license-file = "./LICENSE"
