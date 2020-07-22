@@ -161,7 +161,7 @@ where
 {
     let gauge = Gauge::default()
         .block(Block::default().title("TIME LEFT").borders(Borders::ALL).border_type(BorderType::Rounded))
-        .style(Style::default().fg(Color::Yellow))
+        .gauge_style(Style::default().fg(Color::Yellow))
         .ratio(app.progress);
     f.render_widget(gauge, area);
 }
