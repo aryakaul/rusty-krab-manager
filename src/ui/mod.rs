@@ -2,7 +2,8 @@ pub mod event;
 use tui::backend::Backend;
 use tui::layout::{Alignment, Constraint, Rect};
 use tui::style::{Color, Modifier, Style};
-use tui::widgets::{Block, Borders, Gauge, List, Paragraph, Row, Table, Text, BorderType, TableState};
+use tui::widgets::{Block, Borders, Gauge, List, Paragraph, Row, Table, BorderType, TableState, Wrap, ListItem};
+use tui::text::{Span, Spans};
 use tui::Frame;
 
 /*
@@ -67,12 +68,12 @@ pub fn draw_help<B>(f: &mut Frame<B>, helptable: &mut HelpTable, area: Rect)
 where
     B: Backend,
 {
-    let selected_style = Style::default().fg(Color::Yellow).modifier(Modifier::BOLD);
+    let selected_style = Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD);
     let normal_style = Style::default().fg(Color::White);
     let header = ["Keypress", "Description"];
     let widths = [
-        Constraint::Percentage(50),
-        Constraint::Percentage(50),
+        Constraint::Percentage(20),
+        Constraint::Percentage(80),
     ];
     let rows = helptable
         .items
@@ -131,7 +132,6 @@ impl App {
                 (String::from("GANG"), String::from("2")),
                 (String::from("GANG"), String::from("3")),
                 (String::from("GANG"), String::from("4")),
-                (String::from("GANG"), String::from("5")),
             ],
         }
     }
@@ -183,7 +183,7 @@ where
         .and_then(|height| app.selected.checked_sub(height as usize))
         .unwrap_or(0);
 
-    let selected_style = Style::default().fg(Color::Yellow).modifier(Modifier::BOLD);
+    let selected_style = Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD);
     let normal_style = Style::default().fg(Color::White);
     let header = ["\nTag", "\nName", "\nDue Date"];
     let widths = [
@@ -219,18 +219,19 @@ where
     B: Backend,
 {
     let mut new_shit = vec![];
-    let x = Text::styled(
+    let x = Spans::from(Span::styled(
         "DO THIS SHIT\n\n",
-        Style::default().bg(Color::Green).modifier(Modifier::BOLD),
+        Style::default().bg(Color::Green).add_modifier(Modifier::BOLD)),
     );
     new_shit.push(x);
 
     // push whatever the current task is
     for i in 0..app.current_task.len() {
-        new_shit.push(Text::raw(&app.current_task[i]));
+        new_shit.push(Spans::from(Span::raw(&app.current_task[i])));
     }
-    let task_paragraph = Paragraph::new(new_shit.iter())
-        .block(Block::default().title("CURRENT TASK").borders(Borders::ALL).border_type(BorderType::Rounded)) .alignment(Alignment::Center) .wrap(true); f.render_widget(task_paragraph, area);
+    let task_paragraph = Paragraph::new(new_shit.clone())
+        .block(Block::default().title("CURRENT TASK").borders(Borders::ALL).border_type(BorderType::Rounded)).alignment(Alignment::Center).wrap(Wrap { trim : true }); 
+    f.render_widget(task_paragraph, area);
 }
 
 /*
@@ -241,10 +242,23 @@ pub fn draw_tag_counter<B>(f: &mut Frame<B>, app: &App, area: Rect)
 where
     B: Backend,
 {
-    let stuff = app
+    let stuff: Vec<ListItem> = app
         .completed
         .iter()
-        .map(|(tag, ctr)| Text::styled(format!("{}: {}", tag, ctr), Style::default()));
+        .map(|(tag, ctr)| {
+            let tagspan = Spans::from(vec![
+                Span::styled(
+                    tag.to_owned() + ": " + ctr,
+                    Style::default().add_modifier(Modifier::ITALIC),
+                ),
+            ]);
+            //let ctrspan = Spans::from(vec![Span::raw(ctr)]);
+            ListItem::new(vec![
+                tagspan,
+                //ctrspan,
+            ])
+        })
+    .collect();
 
     let task_ctr = List::new(stuff).block(Block::default().borders(Borders::ALL).title("COUNTER").border_type(BorderType::Rounded));
     //.start_corner(Corner::BottomRight);
