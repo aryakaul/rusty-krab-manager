@@ -8,3 +8,4 @@
 ## 0.1.3
 * increased the space for help page description
 * bumped tui-rs to v.0.10 + made TagCtr use ITALICS
+* added space between 'DO THIS SHIT' and curr. task

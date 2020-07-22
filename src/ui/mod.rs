@@ -220,10 +220,11 @@ where
 {
     let mut new_shit = vec![];
     let x = Spans::from(Span::styled(
-        "DO THIS SHIT\n\n",
+        "DO THIS SHIT",
         Style::default().bg(Color::Green).add_modifier(Modifier::BOLD)),
     );
     new_shit.push(x);
+    new_shit.push(Spans::from(Span::raw("")));
 
     // push whatever the current task is
     for i in 0..app.current_task.len() {
