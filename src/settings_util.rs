@@ -89,7 +89,16 @@ pub fn readin_settings(
         .map(|i| i.into_float().unwrap())
         .collect();
     let curr_day: u32 = Local::now().weekday().number_from_monday();
-    let tag_weights: Vec<f64>;
+    let tag_weights = match curr_day {
+        1 => weights_mon,
+        2 => weights_tue,
+        3 => weights_wed,
+        4 => weights_thu,
+        5 => weights_fri,
+        6 => weights_sat,
+        _ => weights_sun
+    };
+    /*
     if curr_day == 1 {
         tag_weights = weights_mon;
     } else if curr_day == 2 {
@@ -104,7 +113,7 @@ pub fn readin_settings(
         tag_weights = weights_sat;
     } else {
         tag_weights = weights_sun;
-    }
+    }*/
     if taglen != tag_weights.len() {
         panic!("current day tag weights do not match number of tags in config")
     }

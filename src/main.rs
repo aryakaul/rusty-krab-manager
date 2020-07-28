@@ -1,17 +1,15 @@
 mod assignment_utils;
-mod rand_utils;
-mod ui;
 mod fileops_utils;
+mod rand_utils;
 mod settings_util;
 mod sound_utils;
+mod ui;
 
 use assignment_utils::{
     convert_hashmap_to_tuplevector, get_tag_counter_hashmap, hashmap_to_taskvector, readin_tasks,
     taskvector_to_stringvect, turn_assignmentvector_into_pdf,
 };
 use rand_utils::roll_die;
-use ui::event::{Event, Events};
-use ui::{draw_current_task, draw_gauge, draw_tag_counter, draw_task_table, draw_help, App, HelpTable};
 use std::error::Error;
 use std::io;
 use termion::event::Key;
@@ -21,6 +19,10 @@ use termion::screen::AlternateScreen;
 use tui::backend::TermionBackend;
 use tui::layout::{Constraint, Direction, Layout};
 use tui::Terminal;
+use ui::event::{Event, Events};
+use ui::{
+    draw_current_task, draw_gauge, draw_help, draw_tag_counter, draw_task_table, App, HelpTable,
+};
 
 // this function reads in the task list provided in
 // settings and then randomly selects one task to
@@ -125,7 +127,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let backend = TermionBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
     terminal.hide_cursor()?;
-    
+
     let events = Events::new();
     let mut app = App::new();
     app.completed = convert_hashmap_to_tuplevector(&tag_ctr, &tags);
@@ -137,15 +139,27 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut its_task_time = true;
     let mut its_min_break_time = false;
     let mut its_max_break_time = false;
-    
+    let mut curr_screen = String::from("tasks");
+
     // create help table and flag
-    let mut on_help_page = false;
     let mut help_table = HelpTable::new();
 
     // Enter into UI drawing infinite loop
     loop {
-        terminal.draw(|mut f| {
-            if !on_help_page {
+        terminal.draw(|mut f| match curr_screen.as_str() {
+            "help" => {
+                let rects = Layout::default()
+                    .constraints([Constraint::Percentage(100)].as_ref())
+                    .margin(5)
+                    .split(f.size());
+                draw_help(&mut f, &mut help_table, rects[0]);
+            },
+            /*
+            "stats" => {
+                figure this out!
+            }
+            */
+            _ => {
                 let chunks = Layout::default()
                     .direction(Direction::Vertical)
                     .constraints(
@@ -165,22 +179,15 @@ fn main() -> Result<(), Box<dyn Error>> {
                 draw_task_table(&mut f, &app, chunks[1]);
                 draw_current_task(&mut f, &app, mini_chunks[0]);
                 draw_tag_counter(&mut f, &app, mini_chunks[1]);
-            } else {
-                let rects = Layout::default()
-                    .constraints([Constraint::Percentage(100)].as_ref())
-                    .margin(5)
-                    .split(f.size());
-                draw_help(&mut f, &mut help_table, rects[0]);
             }
         })?;
 
         // keybindings
         match events.next()? {
             Event::Input(input) => match input {
-                
                 // denote the currently selected task as complete and reroll a new one
                 Key::Char('c') => {
-                    if its_task_time && ! app.paused {
+                    if its_task_time && !app.paused {
                         let mut fin_task_tag = app.current_task[0].clone();
                         fin_task_tag.pop();
                         *tag_ctr.get_mut(&fin_task_tag).unwrap() += 1;
@@ -195,7 +202,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
                 // reroll the currently selected task without marking current task as complete
                 Key::Char('r') => {
-                    if its_task_time && ! app.paused{
+                    if its_task_time && !app.paused {
                         let (curr_task, items_to_list) =
                             choose_task(&task_path, &tags, &mut tag_weights, &use_due_dates);
                         app.current_task = curr_task;
@@ -226,35 +233,41 @@ fn main() -> Result<(), Box<dyn Error>> {
                 }
 
                 // move cursor down or up on task table
-                Key::Down | Key::Char('j') => {
-                    if !on_help_page {
+                Key::Down | Key::Char('j') => match curr_screen.as_str() {
+                    "help" => {
+                        help_table.next();
+                    }
+                    "tasks" => {
                         app.selected += 1;
                         if app.selected > app.items.len() - 1 {
                             app.selected = 0
                         }
-                    } else {
-                        help_table.next();
                     }
-                }
-                Key::Up | Key::Char('k') => {
-                    if !on_help_page {
+                    _ => {}
+                },
+
+                Key::Up | Key::Char('k') => match curr_screen.as_str() {
+                    "help" => {
+                        help_table.previous();
+                    }
+                    "tasks" => {
                         if app.selected > 0 {
                             app.selected -= 1;
                         } else {
                             app.selected = app.items.len() - 1;
                         }
-                    } else {
-                        help_table.previous();
                     }
-                }
-                
-                Key::Char('h') => {
-                    if !on_help_page {
-                        on_help_page = true;
-                    } else {
-                        on_help_page = false;
+                    _ => {}
+                },
+
+                Key::Char('h') => match curr_screen.as_str() {
+                    "help" => {
+                        curr_screen = String::from("tasks");
                     }
-                }
+                    _ => {
+                        curr_screen = String::from("help");
+                    }
+                },
                 _ => {}
             },
 

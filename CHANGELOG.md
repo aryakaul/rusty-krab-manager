@@ -9,3 +9,6 @@
 * increased the space for help page description
 * bumped tui-rs to v.0.10 + made TagCtr use ITALICS
 * added space between 'DO THIS SHIT' and curr. task
+* made the tag counter *italics*
+* added 'match' logic for **c r i s p** screen switching
+* added 'match' logic for **c r i s p** tag weight decision 

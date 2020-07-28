@@ -2,8 +2,10 @@ pub mod event;
 use tui::backend::Backend;
 use tui::layout::{Alignment, Constraint, Rect};
 use tui::style::{Color, Modifier, Style};
-use tui::widgets::{Block, Borders, Gauge, List, Paragraph, Row, Table, BorderType, TableState, Wrap, ListItem};
 use tui::text::{Span, Spans};
+use tui::widgets::{
+    Block, BorderType, Borders, Gauge, List, ListItem, Paragraph, Row, Table, TableState, Wrap,
+};
 use tui::Frame;
 
 /*
@@ -26,14 +28,14 @@ impl<'a> HelpTable<'a> {
         HelpTable {
             state: TableState::default(),
             items: vec![
-                vec!["k","scroll up in ALL TASKS table"],
-                vec!["j","scroll down in ALL TASKS table"],
-                vec!["r","reroll the given task without marking as complete"],
-                vec!["c","complete the given task and select a new one"],
-                vec!["f","fast forward current task bar to completion"],
-                vec!["q","quit rusty-krab-manager"],
-                vec!["h","toggle help menu"],
-            ], 
+                vec!["k", "scroll up in ALL TASKS table"],
+                vec!["j", "scroll down in ALL TASKS table"],
+                vec!["r", "reroll the given task without marking as complete"],
+                vec!["c", "complete the given task and select a new one"],
+                vec!["f", "fast forward current task bar to completion"],
+                vec!["q", "quit rusty-krab-manager"],
+                vec!["h", "toggle help menu"],
+            ],
         }
     }
     pub fn next(&mut self) {
@@ -68,29 +70,31 @@ pub fn draw_help<B>(f: &mut Frame<B>, helptable: &mut HelpTable, area: Rect)
 where
     B: Backend,
 {
-    let selected_style = Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD);
+    let selected_style = Style::default()
+        .fg(Color::Yellow)
+        .add_modifier(Modifier::BOLD);
     let normal_style = Style::default().fg(Color::White);
     let header = ["Keypress", "Description"];
-    let widths = [
-        Constraint::Percentage(20),
-        Constraint::Percentage(80),
-    ];
+    let widths = [Constraint::Percentage(20), Constraint::Percentage(80)];
     let rows = helptable
         .items
         .iter()
-        .map(|i| Row::StyledData(i.iter(),normal_style));
+        .map(|i| Row::StyledData(i.iter(), normal_style));
 
     // instantiate the table with the tasks provided in the task list
     let table = Table::new(header.iter(), rows)
-        .block(Block::default().borders(Borders::ALL).title("HELP TABLE").border_type(BorderType::Rounded))
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title("HELP TABLE")
+                .border_type(BorderType::Rounded),
+        )
         .highlight_style(selected_style)
         .highlight_symbol(">> ")
         .widths(&widths);
 
     f.render_stateful_widget(table, area, &mut helptable.state);
 }
-
-
 
 /*
  * Define te current TUI application
@@ -160,7 +164,12 @@ where
     B: Backend,
 {
     let gauge = Gauge::default()
-        .block(Block::default().title("TIME LEFT").borders(Borders::ALL).border_type(BorderType::Rounded))
+        .block(
+            Block::default()
+                .title("TIME LEFT")
+                .borders(Borders::ALL)
+                .border_type(BorderType::Rounded),
+        )
         .gauge_style(Style::default().fg(Color::Yellow))
         .ratio(app.progress);
     f.render_widget(gauge, area);
@@ -183,7 +192,9 @@ where
         .and_then(|height| app.selected.checked_sub(height as usize))
         .unwrap_or(0);
 
-    let selected_style = Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD);
+    let selected_style = Style::default()
+        .fg(Color::Yellow)
+        .add_modifier(Modifier::BOLD);
     let normal_style = Style::default().fg(Color::White);
     let header = ["\nTag", "\nName", "\nDue Date"];
     let widths = [
@@ -204,7 +215,12 @@ where
 
     // instantiate the table with the tasks provided in the task list
     let task_table = Table::new(header.iter(), rows)
-        .block(Block::default().borders(Borders::ALL).title("ALL TASKS").border_type(BorderType::Rounded))
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title("ALL TASKS")
+                .border_type(BorderType::Rounded),
+        )
         .widths(&widths)
         .column_spacing(1);
 
@@ -221,8 +237,10 @@ where
     let mut new_shit = vec![];
     let x = Spans::from(Span::styled(
         "DO THIS SHIT",
-        Style::default().bg(Color::Green).add_modifier(Modifier::BOLD)),
-    );
+        Style::default()
+            .bg(Color::Green)
+            .add_modifier(Modifier::BOLD),
+    ));
     new_shit.push(x);
     new_shit.push(Spans::from(Span::raw("")));
 
@@ -231,7 +249,14 @@ where
         new_shit.push(Spans::from(Span::raw(&app.current_task[i])));
     }
     let task_paragraph = Paragraph::new(new_shit.clone())
-        .block(Block::default().title("CURRENT TASK").borders(Borders::ALL).border_type(BorderType::Rounded)).alignment(Alignment::Center).wrap(Wrap { trim : true }); 
+        .block(
+            Block::default()
+                .title("CURRENT TASK")
+                .borders(Borders::ALL)
+                .border_type(BorderType::Rounded),
+        )
+        .alignment(Alignment::Center)
+        .wrap(Wrap { trim: true });
     f.render_widget(task_paragraph, area);
 }
 
@@ -247,21 +272,24 @@ where
         .completed
         .iter()
         .map(|(tag, ctr)| {
-            let tagspan = Spans::from(vec![
-                Span::styled(
-                    tag.to_owned() + ": " + ctr,
-                    Style::default().add_modifier(Modifier::ITALIC),
-                ),
-            ]);
+            let tagspan = Spans::from(vec![Span::styled(
+                tag.to_owned() + ": " + ctr,
+                Style::default().add_modifier(Modifier::ITALIC),
+            )]);
             //let ctrspan = Spans::from(vec![Span::raw(ctr)]);
             ListItem::new(vec![
                 tagspan,
                 //ctrspan,
             ])
         })
-    .collect();
+        .collect();
 
-    let task_ctr = List::new(stuff).block(Block::default().borders(Borders::ALL).title("COUNTER").border_type(BorderType::Rounded));
+    let task_ctr = List::new(stuff).block(
+        Block::default()
+            .borders(Borders::ALL)
+            .title("COUNTER")
+            .border_type(BorderType::Rounded),
+    );
     //.start_corner(Corner::BottomRight);
     f.render_widget(task_ctr, area);
 }
