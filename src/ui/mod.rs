@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 pub mod event;
 use tui::backend::Backend;
 use tui::layout::{Alignment, Constraint, Rect};
@@ -23,6 +24,93 @@ pub struct HelpTable<'a> {
     items: Vec<Vec<&'a str>>,
 }
 
+pub struct WeightTable<'a> {
+    state: TableState,
+    items: Vec<Vec<&'a str>>,
+    tagweights: &'a Vec<f64>,
+    vector_of_tags: &'a Vec<String>,
+}
+
+impl<'a> WeightTable<'a> {
+    pub fn new(tagweights: &'a Vec<f64>, vector_of_tags: &'a Vec<String>) -> WeightTable<'a> {
+        WeightTable {
+            state: TableState::default(),
+            items: vec![vec![
+                "TagName",
+                "TaskName",
+                "TagWeights",
+                "DueWeights",
+                "TotalProb",
+            ]],
+            tagweights: tagweights,
+            vector_of_tags: vector_of_tags,
+        }
+    }
+    pub fn next(&mut self) {
+        let i = match self.state.selected() {
+            Some(i) => {
+                if i > self.items.len() - 1 {
+                    0
+                } else {
+                    i + 1
+                }
+            }
+            None => 0,
+        };
+        self.state.select(Some(i));
+    }
+    pub fn previous(&mut self) {
+        let i = match self.state.selected() {
+            Some(i) => {
+                if i == 0 {
+                    self.items.len() - 1
+                } else {
+                    i - 1
+                }
+            }
+            None => 0,
+        };
+        self.state.select(Some(i));
+    }
+}
+
+pub fn draw_weights<B>(f: &mut Frame<B>, tagweight_table: &mut WeightTable, area: Rect)
+where
+    B: Backend,
+{
+    /*
+    for i in 0..tagweight_table.vector_of_tags.len() {
+        let curr_tag = &tagweight_table.vector_of_tags[i];
+        let curr_weight = &tagweight_table.tagweights[i];
+        tagweight_table.items.push(vec![curr_tag, &curr_weight.to_string()]);
+    }
+    */
+    let selected_style = Style::default()
+        .fg(Color::Yellow)
+        .add_modifier(Modifier::BOLD);
+    let normal_style = Style::default().fg(Color::White);
+    let header = ["Tag", "Probability"];
+    let widths = [Constraint::Percentage(50), Constraint::Percentage(50)];
+    let rows = tagweight_table
+        .items
+        .iter()
+        .map(|i| Row::StyledData(i.iter(), normal_style));
+
+    // instantiate the table with the tasks provided in the task list
+    let table = Table::new(header.iter(), rows)
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title("TAG WEIGHT TABLE")
+                .border_type(BorderType::Rounded),
+        )
+        .highlight_style(selected_style)
+        .highlight_symbol(">> ")
+        .widths(&widths);
+
+    f.render_stateful_widget(table, area, &mut tagweight_table.state);
+}
+
 impl<'a> HelpTable<'a> {
     pub fn new() -> HelpTable<'a> {
         HelpTable {
@@ -33,6 +121,8 @@ impl<'a> HelpTable<'a> {
                 vec!["r", "reroll the given task without marking as complete"],
                 vec!["c", "complete the given task and select a new one"],
                 vec!["f", "fast forward current task bar to completion"],
+                vec!["p", "toggle pause"],
+                vec!["s", "access stats menu"],
                 vec!["q", "quit rusty-krab-manager"],
                 vec!["h", "toggle help menu"],
             ],
@@ -97,7 +187,7 @@ where
 }
 
 /*
- * Define te current TUI application
+ * Define the current TUI application
  * and its variables
  */
 pub struct App {

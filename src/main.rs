@@ -5,11 +5,13 @@ mod settings_util;
 mod sound_utils;
 mod ui;
 
+use crate::assignment_utils::Assignment;
 use assignment_utils::{
     convert_hashmap_to_tuplevector, get_tag_counter_hashmap, hashmap_to_taskvector, readin_tasks,
     taskvector_to_stringvect, turn_assignmentvector_into_pdf,
 };
 use rand_utils::roll_die;
+use std::collections::HashMap;
 use std::error::Error;
 use std::io;
 use termion::event::Key;
@@ -21,8 +23,43 @@ use tui::layout::{Constraint, Direction, Layout};
 use tui::Terminal;
 use ui::event::{Event, Events};
 use ui::{
-    draw_current_task, draw_gauge, draw_help, draw_tag_counter, draw_task_table, App, HelpTable,
+    draw_current_task,
+    draw_gauge,
+    draw_help,
+    draw_tag_counter,
+    draw_task_table,
+    App,
+    HelpTable,
+    //draw_weights, WeightTable,
 };
+
+fn update_tagweights(
+    tag_to_vector_map: &HashMap<String, Vec<Assignment>>,
+    initial_tag_weights: &Vec<f64>,
+    vector_of_tags: &Vec<String>,
+) -> Vec<f64> {
+    let mut updated_tag_weights = initial_tag_weights.clone();
+    let mut xi: f64 = 0.0;
+    let mut ctr = 0;
+
+    for (tag, assign_vec) in tag_to_vector_map {
+        let tag_idx = vector_of_tags.iter().position(|z| &z == &tag).unwrap();
+        let tag_weight = initial_tag_weights[tag_idx];
+        if assign_vec.len() == 0 || tag_weight == 0.0 {
+            xi += tag_weight;
+            updated_tag_weights[tag_idx] = 0.0;
+        } else {
+            ctr += 1
+        }
+    }
+    let to_add = xi / ctr as f64;
+    for i in 0..vector_of_tags.len() {
+        if updated_tag_weights[i] != 0.0 {
+            updated_tag_weights[i] += to_add;
+        }
+    }
+    return updated_tag_weights;
+}
 
 // this function reads in the task list provided in
 // settings and then randomly selects one task to
@@ -39,11 +76,13 @@ fn choose_task(
     //  use tag weights
     configured_task_path: &str,
     vector_of_tags: &Vec<String>,
-    configured_relative_tag_weights: &mut Vec<f64>,
+    initial_tag_weights: &Vec<f64>,
+    //configured_relative_tag_weights: &mut Vec<f64>,
     configured_use_of_due_dates: &Vec<bool>,
 ) -> (Vec<String>, Vec<Vec<String>>) {
     let tag_to_vector_map = readin_tasks(configured_task_path, &vector_of_tags);
 
+    /*
     // update tag weights when no tasks with that tag in task_file
     let mut xi: f64 = 0.0;
     let mut ctr = 0;
@@ -71,6 +110,9 @@ fn choose_task(
         println!("\t{}:\t{}", tag, tag_weight);
     }
     */
+    */
+    let configured_relative_tag_weights =
+        update_tagweights(&tag_to_vector_map, initial_tag_weights, vector_of_tags);
 
     // roll a assignment
     // first pick a tag to get an assignment from
@@ -103,7 +145,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         sound_path,
         tags,
         use_due_dates,
-        mut tag_weights,
+        initial_tag_weights,
         min_break_time,
         max_break_time,
         task_time,
@@ -116,9 +158,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     // initialize tag counter
     let mut tag_ctr = get_tag_counter_hashmap(&tags);
 
+    // update tag weights if needed
+
     // Choose initial task
     let (curr_task, items_to_list) =
-        choose_task(&task_path, &tags, &mut tag_weights, &use_due_dates);
+        choose_task(&task_path, &tags, &initial_tag_weights, &use_due_dates);
 
     // Terminal initialization for UI
     let stdout = io::stdout().into_raw_mode()?;
@@ -143,6 +187,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     // create help table and flag
     let mut help_table = HelpTable::new();
+    //let weight_table = WeightTable::new(&tag_weights, &tags);
 
     // Enter into UI drawing infinite loop
     loop {
@@ -150,15 +195,23 @@ fn main() -> Result<(), Box<dyn Error>> {
             "help" => {
                 let rects = Layout::default()
                     .constraints([Constraint::Percentage(100)].as_ref())
-                    .margin(5)
+                    .margin(2)
                     .split(f.size());
                 draw_help(&mut f, &mut help_table, rects[0]);
-            },
+            }
             /*
             "stats" => {
-                figure this out!
-            }
-            */
+                let chunks = Layout::default()
+                    .direction(Direction::Horizontal)
+                    .constraints(
+                        [
+                            Constraint::Percentage(20),
+                            Constraint::Percentage(80),
+                        ]
+                        .as_ref())
+                    .split(f.size());
+                draw_weights(&mut f, &mut tagweight_table, chunks[0]);
+            }*/
             _ => {
                 let chunks = Layout::default()
                     .direction(Direction::Vertical)
@@ -193,7 +246,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                         *tag_ctr.get_mut(&fin_task_tag).unwrap() += 1;
                         app.completed = convert_hashmap_to_tuplevector(&tag_ctr, &tags);
                         let (curr_task, items_to_list) =
-                            choose_task(&task_path, &tags, &mut tag_weights, &use_due_dates);
+                            choose_task(&task_path, &tags, &initial_tag_weights, &use_due_dates);
                         app.current_task = curr_task;
                         app.items = items_to_list;
                     } else {
@@ -204,7 +257,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 Key::Char('r') => {
                     if its_task_time && !app.paused {
                         let (curr_task, items_to_list) =
-                            choose_task(&task_path, &tags, &mut tag_weights, &use_due_dates);
+                            choose_task(&task_path, &tags, &initial_tag_weights, &use_due_dates);
                         app.current_task = curr_task;
                         app.items = items_to_list;
                     } else {
@@ -268,6 +321,17 @@ fn main() -> Result<(), Box<dyn Error>> {
                         curr_screen = String::from("help");
                     }
                 },
+
+                // toggle stats rkm
+                Key::Char('s') => match curr_screen.as_str() {
+                    "stats" => {
+                        curr_screen = String::from("tasks");
+                    }
+                    _ => {
+                        curr_screen = String::from("stats");
+                    }
+                },
+
                 _ => {}
             },
 
@@ -307,7 +371,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                         sound_utils::playsound(&sound_path, &sink)?;
                         min_break_ctr += 1;
                         let (curr_task, items_to_list) =
-                            choose_task(&task_path, &tags, &mut tag_weights, &use_due_dates);
+                            choose_task(&task_path, &tags, &initial_tag_weights, &use_due_dates);
                         app.current_task = curr_task;
                         app.items = items_to_list;
                         its_min_break_time = false;
@@ -323,7 +387,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                         sound_utils::playsound(&sound_path, &sink)?;
                         min_break_ctr = 0;
                         let (curr_task, items_to_list) =
-                            choose_task(&task_path, &tags, &mut tag_weights, &use_due_dates);
+                            choose_task(&task_path, &tags, &initial_tag_weights, &use_due_dates);
                         app.current_task = curr_task;
                         app.items = items_to_list;
                         its_max_break_time = false;

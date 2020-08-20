@@ -96,24 +96,8 @@ pub fn readin_settings(
         4 => weights_thu,
         5 => weights_fri,
         6 => weights_sat,
-        _ => weights_sun
+        _ => weights_sun,
     };
-    /*
-    if curr_day == 1 {
-        tag_weights = weights_mon;
-    } else if curr_day == 2 {
-        tag_weights = weights_tue;
-    } else if curr_day == 3 {
-        tag_weights = weights_wed;
-    } else if curr_day == 4 {
-        tag_weights = weights_thu;
-    } else if curr_day == 5 {
-        tag_weights = weights_fri;
-    } else if curr_day == 6 {
-        tag_weights = weights_sat;
-    } else {
-        tag_weights = weights_sun;
-    }*/
     if taglen != tag_weights.len() {
         panic!("current day tag weights do not match number of tags in config")
     }
