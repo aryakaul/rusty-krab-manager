@@ -5,10 +5,13 @@
 * add 'h' to toggle a help menu which describes keypresses
 * ROUNDED CORNERS!!!
 
-## 0.1.3
+## 1.0.0
 * increased the space for help page description
 * bumped tui-rs to v.0.10 + made TagCtr use ITALICS
 * added space between 'DO THIS SHIT' and curr. task
 * made the tag counter *italics*
 * added 'match' logic for **c r i s p** screen switching
 * added 'match' logic for **c r i s p** tag weight decision 
+* fixed bug in recomputing of tag weights (#19)
+* moved update_tag_weights to assignment_utils
+* added 's' to toggle a stats menu which describes calculated probability of a given task

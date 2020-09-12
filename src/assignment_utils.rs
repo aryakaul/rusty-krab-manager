@@ -43,12 +43,21 @@ impl Assignment {
  * values. Return this probability distribution.
  */
 fn turn_timetilldue_into_pdf(due: Vec<i64>) -> Vec<f64> {
-    let biggest = *due.iter().max().unwrap() as f64;
+    let mut biggest = 0.0;
+    for i in &due {
+        if *i as f64 > biggest {
+            biggest = *i as f64;
+        }
+    }
+    //println!("{}", biggest);
+    //let biggest: f64 = due.iter().max().unwrap();
+    //let biggest = 100.0;
     let mut pdf: Vec<f64> = Vec::with_capacity(due.len());
     for i in 0..due.len() {
         pdf.push(biggest / due[i] as f64);
     }
     let sum: f64 = pdf.iter().sum();
+
     for i in 0..pdf.len() {
         pdf[i] = pdf[i] / sum;
         //println!("{}", pdf[i]);
@@ -68,7 +77,7 @@ pub fn find_timeuntildue(due_date: DateTime<Local>) -> i64 {
 /*
  * Turn a vector containing all assignments, and return a Vec<f64>
  * that is your probability density function for each assignment
- * The index tracks the same assignment
+ * the index tracks the same assignment
  */
 pub fn turn_assignmentvector_into_pdf(assign: &Vec<Assignment>, use_due: bool) -> Vec<f64> {
     if use_due {
@@ -77,6 +86,7 @@ pub fn turn_assignmentvector_into_pdf(assign: &Vec<Assignment>, use_due: bool) -
             min_till_due.push(find_timeuntildue(assign[i].convert_due_date()));
         }
         return turn_timetilldue_into_pdf(min_till_due);
+    //return turn_timetilldue_into_pdf(vec![1]);
     } else {
         let uniform_prob: f64 = 1.0 / assign.len() as f64;
         return vec![uniform_prob; assign.len()];
@@ -147,6 +157,32 @@ pub fn hashmap_to_taskvector(
     return toret;
 }
 
+pub fn create_weighttable(
+    tagmap: &HashMap<String, Vec<Assignment>>,
+    tag_vector: &Vec<String>,
+    tag_weights: &Vec<f64>,
+    use_dues: &Vec<bool>,
+) -> Vec<Vec<String>> {
+    let mut toret = vec![];
+    for i_tags in 0..tag_vector.len() {
+        let tags = &tag_vector[i_tags];
+        let assign_vec = tagmap.get(tags).unwrap();
+        let assign_pdf = turn_assignmentvector_into_pdf(&assign_vec, use_dues[i_tags]);
+        for i in 0..assign_vec.len() {
+            let mut new = vec![];
+            let curr_assign = &assign_vec[i];
+            new.push(curr_assign.tag.clone());
+            new.push(curr_assign.name.clone());
+            new.push(format!("{:.2}", tag_weights[i_tags]));
+            new.push(format!("{:.2}", assign_pdf[i]));
+            new.push(format!("{:.2}", (assign_pdf[i] * tag_weights[i_tags])));
+            toret.push(new);
+        }
+    }
+    toret.sort_by(|a, b| b[4].cmp(&a[4]));
+    return toret;
+}
+
 // convert a given assigment to a string vector with newline characters
 pub fn taskvector_to_stringvect(curr_assign: &Assignment) -> Vec<String> {
     let mut toret: Vec<String> = Vec::with_capacity(3);
@@ -189,4 +225,32 @@ pub fn convert_hashmap_to_tuplevector(
         toret.push((tags.to_string(), ctr.to_string()));
     }
     return toret;
+}
+
+pub fn update_tagweights(
+    tag_to_vector_map: &HashMap<String, Vec<Assignment>>,
+    initial_tag_weights: &Vec<f64>,
+    vector_of_tags: &Vec<String>,
+) -> Vec<f64> {
+    let mut updated_tag_weights = initial_tag_weights.clone();
+    let mut xi: f64 = 0.0;
+    let mut ctr = 0;
+
+    for (tag, assign_vec) in tag_to_vector_map {
+        let tag_idx = vector_of_tags.iter().position(|z| &z == &tag).unwrap();
+        let tag_weight = initial_tag_weights[tag_idx];
+        if assign_vec.len() == 0 || tag_weight == 0.0 {
+            xi += tag_weight;
+            updated_tag_weights[tag_idx] = 0.0;
+        } else {
+            ctr += 1
+        }
+    }
+    let to_add = xi / ctr as f64;
+    for i in 0..vector_of_tags.len() {
+        if updated_tag_weights[i] != 0.0 {
+            updated_tag_weights[i] += to_add;
+        }
+    }
+    return updated_tag_weights;
 }

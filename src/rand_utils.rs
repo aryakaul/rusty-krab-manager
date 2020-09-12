@@ -9,7 +9,7 @@ use rand::Rng;
  * change it to a cumulative distribution
  * where the last element is always 1
  */
-fn make_cdf(pdf: Vec<f64>) -> Vec<f64> {
+pub fn make_cdf(pdf: Vec<f64>) -> Vec<f64> {
     let sum: f64 = pdf.iter().sum();
     if sum as f32 != 1.0 {
         panic!(

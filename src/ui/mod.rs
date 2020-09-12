@@ -1,4 +1,3 @@
-#![allow(dead_code)]
 pub mod event;
 use tui::backend::Backend;
 use tui::layout::{Alignment, Constraint, Rect};
@@ -24,26 +23,16 @@ pub struct HelpTable<'a> {
     items: Vec<Vec<&'a str>>,
 }
 
-pub struct WeightTable<'a> {
+pub struct WeightTable {
     state: TableState,
-    items: Vec<Vec<&'a str>>,
-    tagweights: &'a Vec<f64>,
-    vector_of_tags: &'a Vec<String>,
+    items: Vec<Vec<String>>,
 }
 
-impl<'a> WeightTable<'a> {
-    pub fn new(tagweights: &'a Vec<f64>, vector_of_tags: &'a Vec<String>) -> WeightTable<'a> {
+impl<'a> WeightTable {
+    pub fn new(weight_table_vec: Vec<Vec<String>>) -> WeightTable {
         WeightTable {
             state: TableState::default(),
-            items: vec![vec![
-                "TagName",
-                "TaskName",
-                "TagWeights",
-                "DueWeights",
-                "TotalProb",
-            ]],
-            tagweights: tagweights,
-            vector_of_tags: vector_of_tags,
+            items: weight_table_vec,
         }
     }
     pub fn next(&mut self) {
@@ -89,8 +78,20 @@ where
         .fg(Color::Yellow)
         .add_modifier(Modifier::BOLD);
     let normal_style = Style::default().fg(Color::White);
-    let header = ["Tag", "Probability"];
-    let widths = [Constraint::Percentage(50), Constraint::Percentage(50)];
+    let header = [
+        "TagName",
+        "TaskName",
+        "TagWeights",
+        "DueWeights",
+        "TotalProb",
+    ];
+    let widths = [
+        Constraint::Percentage(20),
+        Constraint::Percentage(40),
+        Constraint::Percentage(10),
+        Constraint::Percentage(10),
+        Constraint::Percentage(20),
+    ];
     let rows = tagweight_table
         .items
         .iter()
