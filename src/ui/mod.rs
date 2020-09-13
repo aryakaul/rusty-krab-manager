@@ -61,13 +61,7 @@ where
         .fg(Color::Yellow)
         .add_modifier(Modifier::BOLD);
     let normal_style = Style::default().fg(Color::White);
-    let header = [
-        "Tag",
-        "Task",
-        "TagProb",
-        "DueProb",
-        "TotalProb",
-    ];
+    let header = ["Tag", "Task", "TagProb", "DueProb", "TotalProb"];
     let widths = [
         Constraint::Percentage(20),
         Constraint::Percentage(40),
