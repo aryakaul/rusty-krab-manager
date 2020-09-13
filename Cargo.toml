@@ -3,8 +3,11 @@ name = "rusty-krab-manager"
 version = "0.1.2"
 authors = ["luak <arya_kaul@g.harvard.edu>"]
 edition = "2018"
+readme = "README.md"
 license-file = "./LICENSE"
-description = "Time management TUI"
+description = """
+Time management TUI inspired by the pomodoro technique as described by Francesco Cirillo
+"""
 homepage = "https://github.com/aryakaul/rusty-krab-manager"
 repository = "https://github.com/aryakaul/rusty-krab-manager"
 documentation = "https://github.com/aryakaul/rusty-krab-manager/wiki"

@@ -15,3 +15,4 @@
 * fixed bug in recomputing of tag weights (#19)
 * moved update_tag_weights to assignment_utils
 * added 's' to toggle a stats menu which describes calculated probability of a given task
+* unified highlight symbols

@@ -8,16 +8,6 @@ use tui::widgets::{
 };
 use tui::Frame;
 
-/*
- * Allow one to use percentages dynamically within
- * the TUI framework
- */
-pub fn get_percentage_width(width: u16, percentage: f32) -> u16 {
-    let padding = 3;
-    let width = width - padding;
-    (f32::from(width) * percentage) as u16
-}
-
 pub struct HelpTable<'a> {
     state: TableState,
     items: Vec<Vec<&'a str>>,
@@ -67,22 +57,15 @@ pub fn draw_weights<B>(f: &mut Frame<B>, tagweight_table: &mut WeightTable, area
 where
     B: Backend,
 {
-    /*
-    for i in 0..tagweight_table.vector_of_tags.len() {
-        let curr_tag = &tagweight_table.vector_of_tags[i];
-        let curr_weight = &tagweight_table.tagweights[i];
-        tagweight_table.items.push(vec![curr_tag, &curr_weight.to_string()]);
-    }
-    */
     let selected_style = Style::default()
         .fg(Color::Yellow)
         .add_modifier(Modifier::BOLD);
     let normal_style = Style::default().fg(Color::White);
     let header = [
-        "TagName",
-        "TaskName",
-        "TagWeights",
-        "DueWeights",
+        "Tag",
+        "Task",
+        "TagProb",
+        "DueProb",
         "TotalProb",
     ];
     let widths = [
@@ -106,7 +89,6 @@ where
                 .border_type(BorderType::Rounded),
         )
         .highlight_style(selected_style)
-        .highlight_symbol(">> ")
         .widths(&widths);
 
     f.render_stateful_widget(table, area, &mut tagweight_table.state);
@@ -181,7 +163,7 @@ where
                 .border_type(BorderType::Rounded),
         )
         .highlight_style(selected_style)
-        .highlight_symbol(">> ")
+        .highlight_symbol(" ")
         .widths(&widths);
 
     f.render_stateful_widget(table, area, &mut helptable.state);
@@ -289,9 +271,9 @@ where
     let normal_style = Style::default().fg(Color::White);
     let header = ["\nTag", "\nName", "\nDue Date"];
     let widths = [
-        Constraint::Length(get_percentage_width(area.width, 0.15)),
-        Constraint::Length(get_percentage_width(area.width, 0.55)),
-        Constraint::Length(get_percentage_width(area.width, 0.55)),
+        Constraint::Percentage(20),
+        Constraint::Percentage(50),
+        Constraint::Percentage(30),
     ];
 
     // code snippet based on spotify-tui. essentially allows

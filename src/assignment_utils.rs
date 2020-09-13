@@ -86,7 +86,6 @@ pub fn turn_assignmentvector_into_pdf(assign: &Vec<Assignment>, use_due: bool) -
             min_till_due.push(find_timeuntildue(assign[i].convert_due_date()));
         }
         return turn_timetilldue_into_pdf(min_till_due);
-    //return turn_timetilldue_into_pdf(vec![1]);
     } else {
         let uniform_prob: f64 = 1.0 / assign.len() as f64;
         return vec![uniform_prob; assign.len()];
@@ -173,9 +172,9 @@ pub fn create_weighttable(
             let curr_assign = &assign_vec[i];
             new.push(curr_assign.tag.clone());
             new.push(curr_assign.name.clone());
-            new.push(format!("{:.2}", tag_weights[i_tags]));
-            new.push(format!("{:.2}", assign_pdf[i]));
-            new.push(format!("{:.2}", (assign_pdf[i] * tag_weights[i_tags])));
+            new.push(format!("{:.4}", tag_weights[i_tags]));
+            new.push(format!("{:.4}", assign_pdf[i]));
+            new.push(format!("{:.4}", (assign_pdf[i] * tag_weights[i_tags])));
             toret.push(new);
         }
     }
