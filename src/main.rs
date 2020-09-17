@@ -1,4 +1,5 @@
 mod assignment_utils;
+mod default_files;
 mod fileops_utils;
 mod rand_utils;
 mod settings_util;
@@ -25,6 +26,9 @@ use ui::{
     draw_current_task, draw_gauge, draw_help, draw_tag_counter, draw_task_table, draw_weights, App,
     HelpTable, WeightTable,
 };
+
+#[macro_use] extern crate pathsep;
+#[macro_use] extern crate serde_derive;
 
 // this function reads in the task list provided in
 // settings and then randomly selects one task to
@@ -81,6 +85,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut default_config = dirs::config_dir().unwrap();
     default_config.push("rusty-krab-manager");
     default_config.push("config.toml");
+
+    default_files::create_default_files();
+
     let default_config = default_config.to_str().unwrap();
 
     // set config variables
