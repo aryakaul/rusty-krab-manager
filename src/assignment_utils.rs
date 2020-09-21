@@ -1,3 +1,4 @@
+use std::process::exit;
 use super::fileops_utils::lines_from_file;
 use chrono::prelude::*;
 use std::collections::HashMap;
@@ -133,6 +134,16 @@ pub fn readin_tasks(filepath: &str, tag_list: &Vec<String>) -> HashMap<String, V
         let curr_vector = tag_to_taskvectors.get_mut(tag).unwrap();
         curr_vector.push(new_assign);
     }
+
+    if tag_to_taskvectors.iter().all(|tag| tag.1.is_empty()) {
+        eprintln!(
+            "The task list is empty, or all tasks in your list are overdue.
+Fill the file {} with your tasks.",
+            filepath
+        );
+        exit(1);
+    }
+
     return tag_to_taskvectors;
 }
 
