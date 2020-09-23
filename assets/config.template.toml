@@ -1,6 +1,8 @@
 # this is an example configuration
 
 # path to the task file
+# use the full path "/home/USER/...."
+# '{ }' should not be included
 task_filepath = "{task_filepath}"
 
 # path to notification sound
