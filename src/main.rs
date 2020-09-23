@@ -88,7 +88,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     default_config.push("rusty-krab-manager");
     default_config.push("config.toml");
 
-    default_files::create_default_files();
+    //default_files::create_default_files();
 
     let default_config = default_config.to_str().unwrap();
 

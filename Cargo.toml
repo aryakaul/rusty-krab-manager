@@ -1,6 +1,6 @@
 [package]
 name = "rusty-krab-manager"
-version = "1.1.0"
+version = "1.1.1"
 authors = ["luak <arya_kaul@g.harvard.edu>"]
 edition = "2018"
 readme = "README.md"

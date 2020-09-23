@@ -21,3 +21,6 @@
 * made all boxes have the same margin
 * add default config/task files if they don't exist (thanks to @javabird25!)
 * bump tui version to 0.11
+
+## 1.1.1
+* error in tinytemplate for default files. rolling back till I fix it
