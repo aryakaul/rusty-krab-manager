@@ -1,5 +1,18 @@
-schoolwork,Genetics Problem Set,2019-12-10 12:20
-schoolwork,Make presentation,2019-12-20 12:00
-other,work on rust program,2020-02-29 13:00
-other,wrap present for gf,2019-02-11 14:00
-other,memes,2019-10-02 22:00
+# Fill this file with your tasks.
+# Each tasks consists of three fields separated by commas: task tag, description and due date.
+#
+# Task tags are defined in your configuration file by the "tags" setting.
+# Descriptions should not contain commas as they will be interpreted as field separators.
+# Due dates should be in "year-month-day hour:minure" format.
+# Any trailing whitespace symbols will be removed.
+#
+# Example:
+#
+# schoolwork, Genetics Problem Set, 2019-12-10 12:20
+# schoolwork, Make presentation,    2019-12-20 12:00
+# other,      work on rust program, 2020-02-29 13:00
+# other,      wrap present for gf,  2019-02-11 14:00
+# other,      memes,                2019-10-02 22:00
+#
+# Lines starting with "#" are considered comments and will be ignored.
+# Malformed tasks (tasks with fields more or less than 3 fields) and overdue tasks will be ignored as well.
