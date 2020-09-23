@@ -22,10 +22,29 @@ pub fn create_default_files() {
         fill_config(DefaultConfigData {
             sound_filepath: sound_filepath.to_str().unwrap().to_string(),
             task_filepath: task_filepath.to_str().unwrap().to_string(),
-        }).as_bytes()
+        })
+        .as_bytes(),
     );
-    create_default_file(&sound_filepath, include_bytes!(concat!("..", path_separator!(), "assets", path_separator!(), "ocean_man.mp3")));
-    create_default_file(&task_filepath, include_bytes!(concat!("..", path_separator!(), "assets", path_separator!(), "tasks")));
+    create_default_file(
+        &sound_filepath,
+        include_bytes!(concat!(
+            "..",
+            path_separator!(),
+            "assets",
+            path_separator!(),
+            "ocean_man.mp3"
+        )),
+    );
+    create_default_file(
+        &task_filepath,
+        include_bytes!(concat!(
+            "..",
+            path_separator!(),
+            "assets",
+            path_separator!(),
+            "tasks"
+        )),
+    );
 }
 
 fn create_default_file(filepath: &PathBuf, contents: &[u8]) {
@@ -40,11 +59,17 @@ fn create_default_file(filepath: &PathBuf, contents: &[u8]) {
 #[derive(Serialize)]
 struct DefaultConfigData {
     task_filepath: String,
-    sound_filepath: String
+    sound_filepath: String,
 }
 
 fn fill_config(data: DefaultConfigData) -> String {
-    const CONFIG_TEMPLATE: &str = include_str!(concat!("..", path_separator!(), "assets", path_separator!(), "config.template.toml"));
+    const CONFIG_TEMPLATE: &str = include_str!(concat!(
+        "..",
+        path_separator!(),
+        "assets",
+        path_separator!(),
+        "config.template.toml"
+    ));
     let mut template = TinyTemplate::new();
     template.add_template("config", CONFIG_TEMPLATE).unwrap();
 

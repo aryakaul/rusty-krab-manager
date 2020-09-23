@@ -27,8 +27,10 @@ use ui::{
     HelpTable, WeightTable,
 };
 
-#[macro_use] extern crate pathsep;
-#[macro_use] extern crate serde_derive;
+#[macro_use]
+extern crate pathsep;
+#[macro_use]
+extern crate serde_derive;
 
 // this function reads in the task list provided in
 // settings and then randomly selects one task to

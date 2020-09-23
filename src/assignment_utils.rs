@@ -1,8 +1,8 @@
-use std::process::exit;
 use super::fileops_utils::lines_from_file;
 use chrono::prelude::*;
 use std::collections::HashMap;
 use std::fmt;
+use std::process::exit;
 
 //
 // THESE ARE ALL FUNCTIONS RELATED TO THE ASSIGNMENT
