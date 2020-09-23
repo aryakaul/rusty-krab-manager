@@ -139,14 +139,14 @@ fn main() -> Result<(), Box<dyn Error>> {
             "help" => {
                 let rects = Layout::default()
                     .constraints([Constraint::Percentage(100)].as_ref())
-                    .margin(2)
+                    //.margin(2)
                     .split(f.size());
                 draw_help(&mut f, &mut help_table, rects[0]);
             }
             "stats" => {
                 let rects = Layout::default()
                     .constraints([Constraint::Percentage(100)].as_ref())
-                    .margin(2)
+                    //.margin(2)
                     .split(f.size());
                 draw_weights(&mut f, &mut weight_table, rects[0]);
             }

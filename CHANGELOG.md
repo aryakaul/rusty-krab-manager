@@ -16,3 +16,8 @@
 * moved update_tag_weights to assignment_utils
 * added 's' to toggle a stats menu which describes calculated probability of a given task
 * unified highlight symbols
+
+## 1.1.0
+* made all boxes have the same margin
+* add default config/task files if they don't exist (thanks to @javabird25!)
+* bump tui version to 0.11
