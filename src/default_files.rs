@@ -12,10 +12,10 @@ pub fn create_default_files() {
     config_subdir.push("rusty-krab-manager");
     let mut config_filepath = config_subdir.clone();
     config_filepath.push("config.toml");
-    let mut sound_filepath = dirs::config_dir().unwrap();
+    let mut sound_filepath = config_subdir.clone();
     sound_filepath.push("ocean_man.mp3");
-    let mut task_filepath = dirs::home_dir().unwrap();
-    task_filepath.push("rusty-krab-manager-tasks.txt");
+    let mut task_filepath = config_subdir.clone();
+    task_filepath.push("example_tasks.csv");
 
     create_default_file(
         &config_filepath,

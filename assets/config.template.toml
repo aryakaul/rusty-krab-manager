@@ -1,8 +1,6 @@
 # this is an example configuration
 
 # path to the task file
-# use the full path "/home/USER/...."
-# '{ }' should not be included
 task_filepath = "{task_filepath}"
 
 # path to notification sound
@@ -10,7 +8,7 @@ sound_filepath = "{sound_filepath}"
 
 # put tags for each assignment. Order dictates the rest
 #tags = [ "rando-projects", "schoolwork", "personal" ]
-tags = [ "schoolwork", "job", "other" ]
+tags = [ "school", "job", "personal" ]
 
 # boolean to indicate if we should use due dates to weight the assignments
 ## when 'true' assignments due earlier will have a higher probability of

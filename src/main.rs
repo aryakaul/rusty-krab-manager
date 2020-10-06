@@ -12,6 +12,7 @@ use assignment_utils::{
     update_tagweights,
 };
 use rand_utils::roll_die;
+use rodio::Sink;
 use std::error::Error;
 use std::io;
 use termion::event::Key;
@@ -88,7 +89,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     default_config.push("rusty-krab-manager");
     default_config.push("config.toml");
 
-    //default_files::create_default_files();
+    default_files::create_default_files();
 
     let default_config = default_config.to_str().unwrap();
 
@@ -106,7 +107,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     ) = settings_util::readin_settings(default_config)?;
 
     // initialize audio sink
-    let sink = sound_utils::initialize_audio_sink();
+    let (_stream, stream_handle) = rodio::OutputStream::try_default().unwrap();
+    let sink = Sink::try_new(&stream_handle).unwrap();
+    sink.set_volume(0.5);
 
     // initialize tag counter
     let mut tag_ctr = get_tag_counter_hashmap(&tags);
@@ -148,14 +151,12 @@ fn main() -> Result<(), Box<dyn Error>> {
             "help" => {
                 let rects = Layout::default()
                     .constraints([Constraint::Percentage(100)].as_ref())
-                    //.margin(2)
                     .split(f.size());
                 draw_help(&mut f, &mut help_table, rects[0]);
             }
             "stats" => {
                 let rects = Layout::default()
                     .constraints([Constraint::Percentage(100)].as_ref())
-                    //.margin(2)
                     .split(f.size());
                 draw_weights(&mut f, &mut weight_table, rects[0]);
             }

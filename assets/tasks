@@ -16,3 +16,7 @@
 #
 # Lines starting with "#" are considered comments and will be ignored.
 # Malformed tasks (tasks with fields more or less than 3 fields) and overdue tasks will be ignored as well.
+school, Problem Set 📜, 2050-10-12 10:00
+school, Learn how to grow tomatoes 🍅, 2050-09-12 10:00
+job, Code the thing 🖥️,  2050-12-12 10:00
+personal, Build a defensible homestead 🏡, 2050-01-01 11:11

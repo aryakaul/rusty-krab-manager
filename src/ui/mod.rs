@@ -341,7 +341,7 @@ where
         .map(|(tag, ctr)| {
             let tagspan = Spans::from(vec![Span::styled(
                 tag.to_owned() + ": " + ctr,
-                Style::default().add_modifier(Modifier::ITALIC),
+                Style::default(),
             )]);
             //let ctrspan = Spans::from(vec![Span::raw(ctr)]);
             ListItem::new(vec![

@@ -7,7 +7,7 @@
 
 ## 1.0.0
 * increased the space for help page description
-* bumped tui-rs to v.0.10 + made TagCtr use ITALICS
+* bumped tui-rs to v0.10 + made TagCtr use ITALICS
 * added space between 'DO THIS SHIT' and curr. task
 * made the tag counter *italics*
 * added 'match' logic for **c r i s p** screen switching
@@ -24,3 +24,9 @@
 
 ## 1.1.1
 * error in tinytemplate for default files. rolling back till I fix it
+
+## 1.1.2
+* bump tui-rs to v0.12
+* bump rodio to v0.12 + move some functions around to get it working
+* fix tinytemplate default file shenanigans
+* removed italics within the tag counter
