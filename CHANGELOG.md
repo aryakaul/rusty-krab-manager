@@ -30,3 +30,6 @@
 * bump rodio to v0.12 + move some functions around to get it working
 * fix tinytemplate default file shenanigans
 * removed italics within the tag counter
+
+## 1.1.3
+* changed tagweight table to use percentages instead of floats

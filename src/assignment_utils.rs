@@ -183,13 +183,23 @@ pub fn create_weighttable(
             let curr_assign = &assign_vec[i];
             new.push(curr_assign.tag.clone());
             new.push(curr_assign.name.clone());
-            new.push(format!("{:.4}", tag_weights[i_tags]));
-            new.push(format!("{:.4}", assign_pdf[i]));
-            new.push(format!("{:.4}", (assign_pdf[i] * tag_weights[i_tags])));
+            new.push(format!("{:.2}%", tag_weights[i_tags] * 100.0));
+            new.push(format!("{:.2}%", assign_pdf[i] * 100.0));
+            new.push(format!(
+                "{:.2}%",
+                (assign_pdf[i] * tag_weights[i_tags] * 100.0)
+            ));
             toret.push(new);
         }
     }
-    toret.sort_by(|a, b| b[4].cmp(&a[4]));
+    // following code to sort by percentage values
+    toret.sort_by(|a, b| {
+        b[4][..b[4].find("%").unwrap()]
+            .parse::<f32>()
+            .unwrap()
+            .partial_cmp(&a[4][..a[4].find("%").unwrap()].parse::<f32>().unwrap())
+            .unwrap()
+    });
     return toret;
 }
 
