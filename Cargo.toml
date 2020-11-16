@@ -20,7 +20,7 @@ exclude = ["example/*"]
 [dependencies]
 rand = "0.7"
 chrono = "0.4"
-tui = "0.12"
+tui = "0.13"
 termion = "1.5"
 config = "0.10"
 rodio = "0.12"
