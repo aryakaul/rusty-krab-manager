@@ -37,3 +37,5 @@
 ## 1.1.4
 * removed Cargo.lock from .gitignore
 * added some comments to tagweighttable function
+* bumped tui-rs to v0.13
+* bumped rodio to v0.13
