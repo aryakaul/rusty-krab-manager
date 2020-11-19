@@ -33,3 +33,7 @@
 
 ## 1.1.3
 * changed tagweight table to use percentages instead of floats
+
+## 1.1.4
+* removed Cargo.lock from .gitignore
+* added some comments to tagweighttable function

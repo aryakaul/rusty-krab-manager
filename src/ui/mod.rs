@@ -8,11 +8,7 @@ use tui::widgets::{
 };
 use tui::Frame;
 
-pub struct HelpTable<'a> {
-    state: TableState,
-    items: Vec<Vec<&'a str>>,
-}
-
+// Tag Weight Table drawing functions
 pub struct WeightTable {
     state: TableState,
     items: Vec<Vec<String>>,
@@ -53,6 +49,9 @@ impl<'a> WeightTable {
     }
 }
 
+/*
+ * draw weight table in the specificed rectangle.
+ */
 pub fn draw_weights<B>(f: &mut Frame<B>, tagweight_table: &mut WeightTable, area: Rect)
 where
     B: Backend,
@@ -69,6 +68,8 @@ where
         Constraint::Percentage(10),
         Constraint::Percentage(20),
     ];
+
+    // fill in the table with the values
     let rows = tagweight_table
         .items
         .iter()
@@ -86,6 +87,12 @@ where
         .widths(&widths);
 
     f.render_stateful_widget(table, area, &mut tagweight_table.state);
+}
+
+// Help Table drawing functions
+pub struct HelpTable<'a> {
+    state: TableState,
+    items: Vec<Vec<&'a str>>,
 }
 
 impl<'a> HelpTable<'a> {
@@ -357,6 +364,5 @@ where
             .title("COUNTER")
             .border_type(BorderType::Rounded),
     );
-    //.start_corner(Corner::BottomRight);
     f.render_widget(task_ctr, area);
 }

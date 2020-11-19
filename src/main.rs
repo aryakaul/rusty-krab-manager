@@ -89,8 +89,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     default_config.push("rusty-krab-manager");
     default_config.push("config.toml");
 
+    // create default files if nothing is made.
+    // might fail on Macs. Don't know why?
     default_files::create_default_files();
-
     let default_config = default_config.to_str().unwrap();
 
     // set config variables
@@ -113,8 +114,6 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     // initialize tag counter
     let mut tag_ctr = get_tag_counter_hashmap(&tags);
-
-    // update tag weights if needed
 
     // Choose initial task
     let (curr_task, items_to_list, weighttable_vec) =
