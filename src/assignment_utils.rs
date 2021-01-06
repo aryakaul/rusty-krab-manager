@@ -54,16 +54,15 @@ fn turn_timetilldue_into_pdf(due: Vec<i64>) -> Vec<f64> {
     //let biggest: f64 = due.iter().max().unwrap();
     //let biggest = 100.0;
     let mut pdf: Vec<f64> = Vec::with_capacity(due.len());
-    for i in 0..due.len() {
-        pdf.push(biggest / due[i] as f64);
+    for i in due {
+        pdf.push(biggest / i as f64);
     }
     let sum: f64 = pdf.iter().sum();
 
-    for i in 0..pdf.len() {
-        pdf[i] = pdf[i] / sum;
-        //println!("{}", pdf[i]);
+    for prob in &mut pdf {
+        *prob /= sum;
     }
-    return pdf;
+    pdf
 }
 
 /*
@@ -72,7 +71,7 @@ fn turn_timetilldue_into_pdf(due: Vec<i64>) -> Vec<f64> {
 pub fn find_timeuntildue(due_date: DateTime<Local>) -> i64 {
     let curr_local: DateTime<Local> = Local::now();
     let duration = due_date.signed_duration_since(curr_local).num_minutes();
-    return duration;
+    duration
 }
 
 /*
@@ -86,7 +85,7 @@ pub fn turn_assignmentvector_into_pdf(assign: &Vec<Assignment>, use_due: bool) -
         for i in 0..assign.len() {
             min_till_due.push(find_timeuntildue(assign[i].convert_due_date()));
         }
-        return turn_timetilldue_into_pdf(min_till_due);
+        turn_timetilldue_into_pdf(min_till_due)
     } else {
         let uniform_prob: f64 = 1.0 / assign.len() as f64;
         return vec![uniform_prob; assign.len()];
@@ -144,7 +143,7 @@ Fill the file {} with your tasks.",
         exit(1);
     }
 
-    return tag_to_taskvectors;
+    tag_to_taskvectors
 }
 
 // convert the hashmap to a vector of strings
@@ -164,7 +163,7 @@ pub fn hashmap_to_taskvector(
             toret.push(new);
         }
     }
-    return toret;
+    toret
 }
 
 pub fn create_weighttable(
@@ -200,7 +199,7 @@ pub fn create_weighttable(
             .partial_cmp(&a[4][..a[4].find("%").unwrap()].parse::<f32>().unwrap())
             .unwrap()
     });
-    return toret;
+    toret
 }
 
 // convert a given assigment to a string vector with newline characters
@@ -216,7 +215,7 @@ pub fn taskvector_to_stringvect(curr_assign: &Assignment) -> Vec<String> {
     toret.push(tag);
     toret.push(name);
     toret.push(due_date);
-    return toret;
+    toret
 }
 
 /*
@@ -228,7 +227,7 @@ pub fn get_tag_counter_hashmap(tag_vector: &Vec<String>) -> HashMap<String, i64>
     for tags in tag_vector {
         toret.insert(tags.to_string(), 0);
     }
-    return toret;
+    toret
 }
 
 /*
@@ -244,7 +243,7 @@ pub fn convert_hashmap_to_tuplevector(
         let ctr = x.get(tags).unwrap();
         toret.push((tags.to_string(), ctr.to_string()));
     }
-    return toret;
+    toret
 }
 
 pub fn update_tagweights(
@@ -272,5 +271,5 @@ pub fn update_tagweights(
             updated_tag_weights[i] += to_add;
         }
     }
-    return updated_tag_weights;
+    updated_tag_weights
 }

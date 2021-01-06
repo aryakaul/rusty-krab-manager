@@ -114,7 +114,7 @@ pub fn readin_settings(
     let task_time = settings.get_int("task_time")?;
     let maxno_min_breaks = settings.get_int("maxno_short_breaks")?;
 
-    return Ok((
+    Ok((
         task_path,
         sound_path,
         tags,
@@ -124,5 +124,5 @@ pub fn readin_settings(
         max_break_time,
         task_time,
         maxno_min_breaks,
-    ));
+    ))
 }

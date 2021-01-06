@@ -14,6 +14,7 @@ use assignment_utils::{
 use rand_utils::roll_die;
 use rodio::Sink;
 use std::error::Error;
+use std::fs;
 use std::io;
 use termion::event::Key;
 use termion::input::MouseTerminal;
@@ -27,6 +28,7 @@ use ui::{
     draw_current_task, draw_gauge, draw_help, draw_tag_counter, draw_task_table, draw_weights, App,
     HelpTable, WeightTable,
 };
+use clap::{ArgMatches};
 
 #[macro_use]
 extern crate pathsep;
@@ -51,7 +53,6 @@ fn choose_task(
     initial_tag_weights: &Vec<f64>,
     configured_use_of_due_dates: &Vec<bool>,
 ) -> (Vec<String>, Vec<Vec<String>>, Vec<Vec<String>>) {
-    //) -> (Vec<String>, Vec<Vec<String>>) {
     let tag_to_vector_map = readin_tasks(configured_task_path, &vector_of_tags);
 
     let configured_relative_tag_weights =
@@ -80,19 +81,43 @@ fn choose_task(
     // generate table string and current task string. this is for the tui
     let assign_string = taskvector_to_stringvect(chosen_assign);
     let string_alltask_vec = hashmap_to_taskvector(tag_to_vector_map, &vector_of_tags);
-    return (assign_string, string_alltask_vec, weighttable_vec);
+    (assign_string, string_alltask_vec, weighttable_vec)
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
-    // instantiate the config file.
-    let mut default_config = dirs::config_dir().unwrap();
-    default_config.push("rusty-krab-manager");
-    default_config.push("config.toml");
+fn load_or_create_configuration_file(args: &ArgMatches) -> String {
+    if let Some(c) = args.value_of("config") {
+        println!("Value for config: {}", c);
+        return c.to_string();
+    } else {
+       if let Some(mut config_dir) = dirs::config_dir() {
+            config_dir.push("rusty-krab-manager");
+            if !config_dir.exists() {
+                println!("Generating config directories...");
+                let _ = fs::create_dir_all(config_dir);
+            }
+        }
+        default_files::create_default_files();
+        let mut fullpath = dirs::config_dir().unwrap();
+        fullpath.push("rusty-krab-manager");
+        fullpath.push("config.toml");
+        return fullpath.to_str().unwrap().to_string();
+    }
+}
 
-    // create default files if nothing is made.
-    // might fail on Macs. Don't know why?
-    default_files::create_default_files();
-    let default_config = default_config.to_str().unwrap();
+
+fn main() -> Result<(), Box<dyn Error>> {
+
+    let matches = clap::App::new("Rusty-Krab-Manager")
+        .about("Pomodoro inspired TUI task manager")
+        .arg(clap::Arg::new("config")
+            .short('c')
+            .long("config")
+            .value_name("FILE")
+            .about("Path for a config file")
+            .takes_value(true))
+        .get_matches();
+
+    let config = load_or_create_configuration_file(&matches);
 
     // set config variables
     let (
@@ -105,7 +130,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         max_break_time,
         task_time,
         maxno_min_breaks,
-    ) = settings_util::readin_settings(default_config)?;
+    ) = settings_util::readin_settings(&config)?;
 
     // initialize audio sink
     let (_stream, stream_handle) = rodio::OutputStream::try_default().unwrap();
@@ -176,7 +201,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     .constraints([Constraint::Percentage(75), Constraint::Percentage(25)].as_ref())
                     .split(chunks[0]);
                 draw_gauge(&mut f, &app, chunks[2]);
-                draw_task_table(&mut f, &app, chunks[1]);
+                draw_task_table(&mut f, &mut app, chunks[1]);
                 draw_current_task(&mut f, &app, mini_chunks[0]);
                 draw_tag_counter(&mut f, &app, mini_chunks[1]);
             }
@@ -243,10 +268,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                         weight_table.next();
                     }
                     "tasks" => {
-                        app.selected += 1;
-                        if app.selected > app.items.len() - 1 {
-                            app.selected = 0
-                        }
+                        app.next();
                     }
                     _ => {}
                 },
@@ -259,11 +281,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                         weight_table.previous();
                     }
                     "tasks" => {
-                        if app.selected > 0 {
-                            app.selected -= 1;
-                        } else {
-                            app.selected = app.items.len() - 1;
-                        }
+                        app.previous();
                     }
                     _ => {}
                 },

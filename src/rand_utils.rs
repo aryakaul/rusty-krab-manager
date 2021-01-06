@@ -22,7 +22,7 @@ pub fn make_cdf(pdf: Vec<f64>) -> Vec<f64> {
     for idx in 1..pdf.len() {
         cdf.push(cdf[idx - 1] + pdf[idx]);
     }
-    return cdf;
+    cdf
 }
 
 /* Given a probability distribution containing n elements
@@ -34,5 +34,5 @@ pub fn roll_die(pdf: Vec<f64>) -> usize {
     let x = rng.gen::<f64>();
     let cdf: Vec<f64> = make_cdf(pdf);
     let index = cdf.iter().position(|&r| x < r).unwrap();
-    return index;
+    index
 }

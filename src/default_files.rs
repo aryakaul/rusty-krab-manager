@@ -72,6 +72,5 @@ fn fill_config(data: DefaultConfigData) -> String {
     ));
     let mut template = TinyTemplate::new();
     template.add_template("config", CONFIG_TEMPLATE).unwrap();
-
     template.render("config", &data).unwrap()
 }

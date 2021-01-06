@@ -39,3 +39,12 @@
 * added some comments to tagweighttable function
 * bumped tui-rs to v0.13
 * bumped rodio to v0.13
+
+## 1.2.0
+* bumped tui-rs to v0.14
+* modified the task table to use a stateful table in the backend
+* bumped serde/serde_derive to 1.0.118
+* bumped rand to v0.8
+* bumpted tinytemplate to v1.2
+* added -c/--config option
+* create default config directories if they don't exist & no -c option
