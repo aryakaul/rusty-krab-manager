@@ -48,3 +48,11 @@
 * bumpted tinytemplate to v1.2
 * added -c/--config option
 * create default config directories if they don't exist & no -c option
+
+## 1.2.1
+* bumped tinytemplate to v1.2.1
+* bumped rand to v0.8.3
+* bumped termion to v1.5.6
+* bumped serde to v1.0.123
+* remove serde_derive as dependency 
+* formatted code and cleaned up some clippy warnings

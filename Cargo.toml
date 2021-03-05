@@ -1,6 +1,6 @@
 [package]
 name = "rusty-krab-manager"
-version = "1.2.0"
+version = "1.2.1"
 authors = ["luak <arya_kaul@g.harvard.edu>"]
 edition = "2018"
 readme = "README.md"
@@ -17,15 +17,15 @@ exclude = ["example/*"]
 
 
 [dependencies]
-rand = "0.8"
+rand = "0.8.3"
 chrono = "0.4"
 tui = "0.14"
-termion = "1.5"
+termion = "1.5.6"
 config = "0.10"
 rodio = "0.13"
 dirs = "3.0"
 pathsep = "0.1"
-tinytemplate = "1.2"
-serde = "1.0.118"
-serde_derive = "1.0.118"
+tinytemplate = "1.2.1"
+serde ={ version = "1.0.123", features = ["derive"] }
+#serde_derive = "1.0.118"
 clap = "3.0.0-beta.2"

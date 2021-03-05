@@ -101,8 +101,10 @@ pub fn readin_settings(
     if taglen != tag_weights.len() {
         panic!("current day tag weights do not match number of tags in config")
     }
+
+    let error_margin = f64::EPSILON;
     let tag_weights_sum: f64 = tag_weights.iter().sum();
-    if tag_weights_sum as f32 != 1.0 {
+    if (tag_weights_sum - 1.0).abs() > error_margin {
         panic!(
             "current day tag weights do not sum to 1. they sum to {}",
             tag_weights_sum

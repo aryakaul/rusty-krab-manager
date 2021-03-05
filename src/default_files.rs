@@ -1,3 +1,4 @@
+use serde::Serialize;
 use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;

@@ -10,8 +10,9 @@ use rand::Rng;
  * where the last element is always 1
  */
 pub fn make_cdf(pdf: Vec<f64>) -> Vec<f64> {
+    let error_margin = f64::EPSILON;
     let sum: f64 = pdf.iter().sum();
-    if sum as f32 != 1.0 {
+    if (sum - 1.0).abs() > error_margin {
         panic!(
             "Probability distribution does not sum to 1! Instead sums to {}",
             sum as f32

@@ -11,6 +11,7 @@ use assignment_utils::{
     hashmap_to_taskvector, readin_tasks, taskvector_to_stringvect, turn_assignmentvector_into_pdf,
     update_tagweights,
 };
+use clap::ArgMatches;
 use rand_utils::roll_die;
 use rodio::Sink;
 use std::error::Error;
@@ -28,12 +29,11 @@ use ui::{
     draw_current_task, draw_gauge, draw_help, draw_tag_counter, draw_task_table, draw_weights, App,
     HelpTable, WeightTable,
 };
-use clap::{ArgMatches};
 
 #[macro_use]
 extern crate pathsep;
-#[macro_use]
-extern crate serde_derive;
+//#[macro_use]
+//extern crate serde_derive;
 
 // this function reads in the task list provided in
 // settings and then randomly selects one task to
@@ -49,9 +49,9 @@ fn choose_task(
     //  vector of booleans denoting whether or not to
     //  use tag weights
     configured_task_path: &str,
-    vector_of_tags: &Vec<String>,
-    initial_tag_weights: &Vec<f64>,
-    configured_use_of_due_dates: &Vec<bool>,
+    vector_of_tags: &[String],
+    initial_tag_weights: &[f64],
+    configured_use_of_due_dates: &[bool],
 ) -> (Vec<String>, Vec<Vec<String>>, Vec<Vec<String>>) {
     let tag_to_vector_map = readin_tasks(configured_task_path, &vector_of_tags);
 
@@ -87,9 +87,9 @@ fn choose_task(
 fn load_or_create_configuration_file(args: &ArgMatches) -> String {
     if let Some(c) = args.value_of("config") {
         println!("Value for config: {}", c);
-        return c.to_string();
+        c.to_string()
     } else {
-       if let Some(mut config_dir) = dirs::config_dir() {
+        if let Some(mut config_dir) = dirs::config_dir() {
             config_dir.push("rusty-krab-manager");
             if !config_dir.exists() {
                 println!("Generating config directories...");
@@ -104,17 +104,17 @@ fn load_or_create_configuration_file(args: &ArgMatches) -> String {
     }
 }
 
-
 fn main() -> Result<(), Box<dyn Error>> {
-
     let matches = clap::App::new("Rusty-Krab-Manager")
         .about("Pomodoro inspired TUI task manager")
-        .arg(clap::Arg::new("config")
-            .short('c')
-            .long("config")
-            .value_name("FILE")
-            .about("Path for a config file")
-            .takes_value(true))
+        .arg(
+            clap::Arg::new("config")
+                .short('c')
+                .long("config")
+                .value_name("FILE")
+                .about("Path for a config file")
+                .takes_value(true),
+        )
         .get_matches();
 
     let config = load_or_create_configuration_file(&matches);

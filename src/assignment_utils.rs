@@ -97,7 +97,7 @@ pub fn turn_assignmentvector_into_pdf(assign: &Vec<Assignment>, use_due: bool) -
  * Convert these into a hashmap linking each tag to a vector of
  * assignments associated with that tag
  */
-pub fn readin_tasks(filepath: &str, tag_list: &Vec<String>) -> HashMap<String, Vec<Assignment>> {
+pub fn readin_tasks(filepath: &str, tag_list: &[String]) -> HashMap<String, Vec<Assignment>> {
     let lines = lines_from_file(filepath);
     let mut tag_to_taskvectors: HashMap<String, Vec<Assignment>> = HashMap::new();
     for tags in tag_list {
@@ -149,7 +149,7 @@ Fill the file {} with your tasks.",
 // convert the hashmap to a vector of strings
 pub fn hashmap_to_taskvector(
     tagmap: HashMap<String, Vec<Assignment>>,
-    tag_vector: &Vec<String>,
+    tag_vector: &[String],
 ) -> Vec<Vec<String>> {
     let mut toret = vec![];
     for tags in tag_vector {
@@ -168,9 +168,9 @@ pub fn hashmap_to_taskvector(
 
 pub fn create_weighttable(
     tagmap: &HashMap<String, Vec<Assignment>>,
-    tag_vector: &Vec<String>,
-    tag_weights: &Vec<f64>,
-    use_dues: &Vec<bool>,
+    tag_vector: &[String],
+    tag_weights: &[f64],
+    use_dues: &[bool],
 ) -> Vec<Vec<String>> {
     let mut toret = vec![];
     for i_tags in 0..tag_vector.len() {
@@ -248,10 +248,10 @@ pub fn convert_hashmap_to_tuplevector(
 
 pub fn update_tagweights(
     tag_to_vector_map: &HashMap<String, Vec<Assignment>>,
-    initial_tag_weights: &Vec<f64>,
-    vector_of_tags: &Vec<String>,
+    initial_tag_weights: &[f64],
+    vector_of_tags: &[String],
 ) -> Vec<f64> {
-    let mut updated_tag_weights = initial_tag_weights.clone();
+    let mut updated_tag_weights = initial_tag_weights.to_owned();
     let mut xi: f64 = 0.0;
     let mut ctr = 0;
 
@@ -271,5 +271,5 @@ pub fn update_tagweights(
             updated_tag_weights[i] += to_add;
         }
     }
-    updated_tag_weights
+    updated_tag_weights.to_vec()
 }
