@@ -26,6 +26,6 @@ rodio = "0.13"
 dirs = "3.0"
 pathsep = "0.1"
 tinytemplate = "1.2.1"
-serde ={ version = "1.0.123", features = ["derive"] }
+serde ={ version = "1.0.124", features = ["derive"] }
 #serde_derive = "1.0.118"
 clap = "3.0.0-beta.2"
