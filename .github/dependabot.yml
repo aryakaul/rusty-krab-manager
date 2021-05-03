@@ -1,0 +1,24 @@
+version: 2
+updates:
+- package-ecosystem: cargo
+  directory: "/"
+  schedule:
+    interval: daily
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: serde
+    versions:
+    - 1.0.123
+    - 1.0.124
+  - dependency-name: tinytemplate
+    versions:
+    - 1.2.1
+  - dependency-name: rand
+    versions:
+    - 0.8.3
+  - dependency-name: termion
+    versions:
+    - 1.5.6
+  - dependency-name: serde_derive
+    versions:
+    - 1.0.123
