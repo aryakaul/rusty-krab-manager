@@ -70,8 +70,8 @@ fn turn_timetilldue_into_pdf(due: Vec<i64>) -> Vec<f64> {
  */
 pub fn find_timeuntildue(due_date: DateTime<Local>) -> i64 {
     let curr_local: DateTime<Local> = Local::now();
-    let duration = due_date.signed_duration_since(curr_local).num_minutes();
-    duration
+    due_date.signed_duration_since(curr_local).num_minutes()
+    //duration
 }
 
 /*
@@ -79,11 +79,12 @@ pub fn find_timeuntildue(due_date: DateTime<Local>) -> i64 {
  * that is your probability density function for each assignment
  * the index tracks the same assignment
  */
-pub fn turn_assignmentvector_into_pdf(assign: &Vec<Assignment>, use_due: bool) -> Vec<f64> {
+//pub fn turn_assignmentvector_into_pdf(assign: &Vec<Assignment>, use_due: bool) -> Vec<f64> {
+pub fn turn_assignmentvector_into_pdf(assign: &[Assignment], use_due: bool) -> Vec<f64> {
     if use_due {
         let mut min_till_due: Vec<i64> = Vec::new();
-        for i in 0..assign.len() {
-            min_till_due.push(find_timeuntildue(assign[i].convert_due_date()));
+        for item in assign {
+            min_till_due.push(find_timeuntildue(item.convert_due_date()));
         }
         turn_timetilldue_into_pdf(min_till_due)
     } else {
@@ -106,7 +107,7 @@ pub fn readin_tasks(filepath: &str, tag_list: &[String]) -> HashMap<String, Vec<
     }
 
     for line in lines {
-        let task_vec: Vec<&str> = line.split(",").collect();
+        let task_vec: Vec<&str> = line.split(',').collect();
 
         // ignore all lines in todo list that do not have 3
         // fields or that start with '#'
@@ -154,9 +155,11 @@ pub fn hashmap_to_taskvector(
     let mut toret = vec![];
     for tags in tag_vector {
         let assign_vec = tagmap.get(tags).unwrap();
-        for i in 0..assign_vec.len() {
+        for item in assign_vec {
+            //for i in 0..assign_vec.len() {
             let mut new = vec![];
-            let curr_assign = &assign_vec[i];
+            //let curr_assign = &assign_vec[i];
+            let curr_assign = item;
             new.push(curr_assign.tag.clone());
             new.push(curr_assign.name.clone());
             new.push(curr_assign.due_time.clone());
@@ -193,10 +196,10 @@ pub fn create_weighttable(
     }
     // following code to sort by percentage values
     toret.sort_by(|a, b| {
-        b[4][..b[4].find("%").unwrap()]
+        b[4][..b[4].find('%').unwrap()]
             .parse::<f32>()
             .unwrap()
-            .partial_cmp(&a[4][..a[4].find("%").unwrap()].parse::<f32>().unwrap())
+            .partial_cmp(&a[4][..a[4].find('%').unwrap()].parse::<f32>().unwrap())
             .unwrap()
     });
     toret
@@ -222,7 +225,7 @@ pub fn taskvector_to_stringvect(curr_assign: &Assignment) -> Vec<String> {
  * Convert the vector of tags from the config file to a hashmap
  * linking each tag to a integer counter
  */
-pub fn get_tag_counter_hashmap(tag_vector: &Vec<String>) -> HashMap<String, i64> {
+pub fn get_tag_counter_hashmap(tag_vector: &[String]) -> HashMap<String, i64> {
     let mut toret: HashMap<String, i64> = HashMap::new();
     for tags in tag_vector {
         toret.insert(tags.to_string(), 0);
@@ -236,7 +239,7 @@ pub fn get_tag_counter_hashmap(tag_vector: &Vec<String>) -> HashMap<String, i64>
  */
 pub fn convert_hashmap_to_tuplevector(
     x: &HashMap<String, i64>,
-    tag: &Vec<String>,
+    tag: &[String],
 ) -> Vec<(String, String)> {
     let mut toret: Vec<(String, String)> = Vec::new();
     for tags in tag {
@@ -256,9 +259,9 @@ pub fn update_tagweights(
     let mut ctr = 0;
 
     for (tag, assign_vec) in tag_to_vector_map {
-        let tag_idx = vector_of_tags.iter().position(|z| &z == &tag).unwrap();
+        let tag_idx = vector_of_tags.iter().position(|z| z == tag).unwrap();
         let tag_weight = initial_tag_weights[tag_idx];
-        if assign_vec.len() == 0 || tag_weight == 0.0 {
+        if assign_vec.is_empty() || tag_weight == 0.0 {
             xi += tag_weight;
             updated_tag_weights[tag_idx] = 0.0;
         } else {

@@ -56,3 +56,10 @@
 * bumped serde to v1.0.123
 * remove serde_derive as dependency 
 * formatted code and cleaned up some clippy warnings
+
+## 1.2.2
+* bumped rodio to v0.14
+* bumped config to v0.11.0
+* bumped dirs to v3.0.2
+* bumped tui to v0.15
+* fixed a buttload of clippy warnings... but not all :(
