@@ -23,7 +23,7 @@ tui = "0.15"
 termion = "1.5.6"
 config = "0.11"
 rodio = "0.14"
-dirs = "3.0"
+dirs = "4.0"
 pathsep = "0.1"
 tinytemplate = "1.2.1"
 serde ={ version = "1.0.123", features = ["derive"] }
