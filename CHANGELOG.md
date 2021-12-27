@@ -63,3 +63,9 @@
 * bumped dirs to v3.0.2
 * bumped tui to v0.15
 * fixed a buttload of clippy warnings... but not all :(
+
+## 1.2.3
+* bumped clap to vbeta.5
+* bumped dirs to v4.0.0
+* bumped tui to v0.16
+* fixed ALL clippy warnings

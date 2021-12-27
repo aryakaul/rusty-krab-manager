@@ -1,7 +1,8 @@
 use serde::Serialize;
 use std::fs::File;
 use std::io::Write;
-use std::path::PathBuf;
+//use std::path::PathBuf;
+use std::path::Path;
 use tinytemplate::TinyTemplate;
 
 // Create files required for operation if they don't exist, such as:
@@ -48,7 +49,7 @@ pub fn create_default_files() {
     );
 }
 
-fn create_default_file(filepath: &PathBuf, contents: &[u8]) {
+fn create_default_file(filepath: &Path, contents: &[u8]) {
     if filepath.exists() {
         return;
     }

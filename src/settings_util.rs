@@ -6,9 +6,8 @@ use std::path::Path;
  * Take the settings file and convert it
  * to a series of raw values to be used
  */
-pub fn readin_settings(
-    config_path: &str,
-) -> Result<
+
+type ConfigOptions = Result<
     (
         String,
         String,
@@ -21,7 +20,9 @@ pub fn readin_settings(
         i64,
     ),
     Box<dyn Error>,
-> {
+>;
+
+pub fn readin_settings(config_path: &str) -> ConfigOptions {
     // Read in configuration
     let mut settings = config::Config::new();
     settings.merge(config::File::with_name(config_path))?;

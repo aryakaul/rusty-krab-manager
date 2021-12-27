@@ -53,14 +53,14 @@ fn choose_task(
     initial_tag_weights: &[f64],
     configured_use_of_due_dates: &[bool],
 ) -> (Vec<String>, Vec<Vec<String>>, Vec<Vec<String>>) {
-    let tag_to_vector_map = readin_tasks(configured_task_path, &vector_of_tags);
+    let tag_to_vector_map = readin_tasks(configured_task_path, vector_of_tags);
 
     let configured_relative_tag_weights =
         update_tagweights(&tag_to_vector_map, initial_tag_weights, vector_of_tags);
 
     let weighttable_vec = create_weighttable(
         &tag_to_vector_map,
-        &vector_of_tags,
+        vector_of_tags,
         &configured_relative_tag_weights,
         configured_use_of_due_dates,
     );
@@ -75,12 +75,12 @@ fn choose_task(
     let assignvector = tag_to_vector_map.get(chosen_tag).unwrap();
     // turn this into a pdf and roll an assignment
     let assignvector_pdf =
-        turn_assignmentvector_into_pdf(&assignvector, configured_use_of_due_dates[tag_roll]);
+        turn_assignmentvector_into_pdf(assignvector, configured_use_of_due_dates[tag_roll]);
     let chosen_assign = &assignvector[roll_die(assignvector_pdf)];
 
     // generate table string and current task string. this is for the tui
     let assign_string = taskvector_to_stringvect(chosen_assign);
-    let string_alltask_vec = hashmap_to_taskvector(tag_to_vector_map, &vector_of_tags);
+    let string_alltask_vec = hashmap_to_taskvector(tag_to_vector_map, vector_of_tags);
     (assign_string, string_alltask_vec, weighttable_vec)
 }
 
@@ -112,7 +112,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .short('c')
                 .long("config")
                 .value_name("FILE")
-                .about("Path for a config file")
+                .help("Path for a config file")
                 .takes_value(true),
         )
         .get_matches();
@@ -171,18 +171,18 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     // Enter into UI drawing infinite loop
     loop {
-        terminal.draw(|mut f| match curr_screen.as_str() {
+        terminal.draw(|f| match curr_screen.as_str() {
             "help" => {
                 let rects = Layout::default()
                     .constraints([Constraint::Percentage(100)].as_ref())
                     .split(f.size());
-                draw_help(&mut f, &mut help_table, rects[0]);
+                draw_help(f, &mut help_table, rects[0]);
             }
             "stats" => {
                 let rects = Layout::default()
                     .constraints([Constraint::Percentage(100)].as_ref())
                     .split(f.size());
-                draw_weights(&mut f, &mut weight_table, rects[0]);
+                draw_weights(f, &mut weight_table, rects[0]);
             }
             _ => {
                 let chunks = Layout::default()
@@ -200,10 +200,11 @@ fn main() -> Result<(), Box<dyn Error>> {
                     .direction(Direction::Horizontal)
                     .constraints([Constraint::Percentage(75), Constraint::Percentage(25)].as_ref())
                     .split(chunks[0]);
-                draw_gauge(&mut f, &app, chunks[2]);
-                draw_task_table(&mut f, &mut app, chunks[1]);
-                draw_current_task(&mut f, &app, mini_chunks[0]);
-                draw_tag_counter(&mut f, &app, mini_chunks[1]);
+                //draw_gauge(&mut f, &app, chunks[2]);
+                draw_gauge(f, &app, chunks[2]);
+                draw_task_table(f, &mut app, chunks[1]);
+                draw_current_task(f, &app, mini_chunks[0]);
+                draw_tag_counter(f, &app, mini_chunks[1]);
             }
         })?;
 

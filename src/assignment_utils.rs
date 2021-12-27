@@ -179,7 +179,7 @@ pub fn create_weighttable(
     for i_tags in 0..tag_vector.len() {
         let tags = &tag_vector[i_tags];
         let assign_vec = tagmap.get(tags).unwrap();
-        let assign_pdf = turn_assignmentvector_into_pdf(&assign_vec, use_dues[i_tags]);
+        let assign_pdf = turn_assignmentvector_into_pdf(assign_vec, use_dues[i_tags]);
         for i in 0..assign_vec.len() {
             let mut new = vec![];
             let curr_assign = &assign_vec[i];
@@ -269,9 +269,11 @@ pub fn update_tagweights(
         }
     }
     let to_add = xi / ctr as f64;
-    for i in 0..vector_of_tags.len() {
-        if updated_tag_weights[i] != 0.0 {
-            updated_tag_weights[i] += to_add;
+    //for i in 0..vector_of_tags.len() {
+    for item in updated_tag_weights.iter_mut().take(vector_of_tags.len()) {
+        if *item != 0.0 {
+            //updated_tag_weights[i] += to_add;
+            *item += to_add;
         }
     }
     updated_tag_weights.to_vec()
