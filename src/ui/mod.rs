@@ -403,7 +403,7 @@ where
         .iter()
         .map(|(tag, ctr)| {
             let tagspan = Spans::from(vec![Span::styled(
-                tag.to_owned() + ": " + ctr,
+                tag.clone() + ": " + ctr,
                 Style::default(),
             )]);
             ListItem::new(vec![tagspan])

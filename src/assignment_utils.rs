@@ -149,7 +149,7 @@ Fill the file {} with your tasks.",
 
 // convert the hashmap to a vector of strings
 pub fn hashmap_to_taskvector(
-    tagmap: HashMap<String, Vec<Assignment>>,
+    tagmap: &HashMap<String, Vec<Assignment>>,
     tag_vector: &[String],
 ) -> Vec<Vec<String>> {
     let mut toret = vec![];
@@ -265,10 +265,10 @@ pub fn update_tagweights(
             xi += tag_weight;
             updated_tag_weights[tag_idx] = 0.0;
         } else {
-            ctr += 1
+            ctr += 1;
         }
     }
-    let to_add = xi / ctr as f64;
+    let to_add = xi / f64::from(ctr);
     //for i in 0..vector_of_tags.len() {
     for item in updated_tag_weights.iter_mut().take(vector_of_tags.len()) {
         if *item != 0.0 {
@@ -276,5 +276,5 @@ pub fn update_tagweights(
             *item += to_add;
         }
     }
-    updated_tag_weights.to_vec()
+    updated_tag_weights.clone()
 }
