@@ -29,14 +29,16 @@ pub fn readin_settings(config_path: &str) -> ConfigOptions {
 
     // get the paths to the task file and sound file
     let task_path = settings.get_str("task_filepath")?;
-    if !Path::new(&task_path).exists() {
-        panic!("task filepath does not exist");
-    }
+    assert!(
+        Path::new(&task_path).exists(),
+        "task filepath does not exist"
+    );
 
     let sound_path = settings.get_str("sound_filepath")?;
-    if !Path::new(&sound_path).exists() {
-        panic!("sound filepath does not exist");
-    }
+    assert!(
+        Path::new(&sound_path).exists(),
+        "sound filepath does not exist"
+    );
 
     // get the vector of tags
     let tags = settings.get_array("tags")?;
@@ -49,9 +51,10 @@ pub fn readin_settings(config_path: &str) -> ConfigOptions {
         .into_iter()
         .map(|i| i.into_bool().unwrap())
         .collect();
-    if taglen != use_due_dates.len() {
-        panic!("use_due_dates vector length does not match number of tags in config")
-    }
+    assert!(
+        taglen == use_due_dates.len(),
+        "use_due_dates vector length does not match number of tags in config"
+    );
 
     // get weights tags for all days of the week
     let weights_mon = settings.get_array("weights.mon")?;
@@ -99,18 +102,18 @@ pub fn readin_settings(config_path: &str) -> ConfigOptions {
         6 => weights_sat,
         _ => weights_sun,
     };
-    if taglen != tag_weights.len() {
-        panic!("current day tag weights do not match number of tags in config")
-    }
+    assert!(
+        taglen == tag_weights.len(),
+        "current day tag weights do not match number of tags in config"
+    );
 
     let error_margin = f64::EPSILON;
     let tag_weights_sum: f64 = tag_weights.iter().sum();
-    if (tag_weights_sum - 1.0).abs() > error_margin {
-        panic!(
-            "current day tag weights do not sum to 1. they sum to {}",
-            tag_weights_sum
-        )
-    }
+    assert!(
+        (tag_weights_sum - 1.0).abs() <= error_margin,
+        "current day tag weights do not sum to 1. they sum to {}",
+        tag_weights_sum
+    );
 
     let min_break_time = settings.get_int("short_break_time")?;
     let max_break_time = settings.get_int("long_break_time")?;

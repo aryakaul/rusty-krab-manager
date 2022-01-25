@@ -68,7 +68,7 @@ fn choose_task(
     // last Vec will become the stats page
     // roll a assignment
     // first pick a tag to get an assignment from
-    let tag_roll = roll_die(configured_relative_tag_weights.to_vec());
+    let tag_roll = roll_die(&configured_relative_tag_weights);
     let chosen_tag = &vector_of_tags[tag_roll];
 
     // then get the vector of assignments assigned to that tag
@@ -76,11 +76,11 @@ fn choose_task(
     // turn this into a pdf and roll an assignment
     let assignvector_pdf =
         turn_assignmentvector_into_pdf(assignvector, configured_use_of_due_dates[tag_roll]);
-    let chosen_assign = &assignvector[roll_die(assignvector_pdf)];
+    let chosen_assign = &assignvector[roll_die(&assignvector_pdf)];
 
     // generate table string and current task string. this is for the tui
     let assign_string = taskvector_to_stringvect(chosen_assign);
-    let string_alltask_vec = hashmap_to_taskvector(tag_to_vector_map, vector_of_tags);
+    let string_alltask_vec = hashmap_to_taskvector(&tag_to_vector_map, vector_of_tags);
     (assign_string, string_alltask_vec, weighttable_vec)
 }
 

@@ -21,7 +21,7 @@ pub fn create_default_files() {
 
     create_default_file(
         &config_filepath,
-        fill_config(DefaultConfigData {
+        fill_config(&DefaultConfigData {
             sound_filepath: sound_filepath.to_str().unwrap().to_string(),
             task_filepath: task_filepath.to_str().unwrap().to_string(),
         })
@@ -64,7 +64,7 @@ struct DefaultConfigData {
     sound_filepath: String,
 }
 
-fn fill_config(data: DefaultConfigData) -> String {
+fn fill_config(data: &DefaultConfigData) -> String {
     const CONFIG_TEMPLATE: &str = include_str!(concat!(
         "..",
         path_separator!(),
