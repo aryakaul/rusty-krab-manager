@@ -74,4 +74,5 @@
 * bumped rodio to v0.15
 * bumped clap to v3.0.12
 * refactoring courtesy of @danieleades
-* added notifications when task is complete
+* added notifications when gauge is complete
+* added notification on what current task is
