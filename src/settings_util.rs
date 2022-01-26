@@ -1,40 +1,35 @@
 use chrono::{Datelike, Local};
 use std::error::Error;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
-/*
- * Take the settings file and convert it
- * to a series of raw values to be used
- */
+// Take the settings file and convert it
+// to a series of raw values to be used
 
-type ConfigOptions = Result<
-    (
-        String,
-        String,
-        Vec<String>,
-        Vec<bool>,
-        Vec<f64>,
-        i64,
-        i64,
-        i64,
-        i64,
-    ),
-    Box<dyn Error>,
->;
+pub struct ConfigOptions {
+    pub task_path: PathBuf,
+    pub sound_path: PathBuf,
+    pub tags: Vec<String>,
+    pub use_due_dates: Vec<bool>,
+    pub initial_tag_weights: Vec<f64>,
+    pub min_break_time: i64,
+    pub max_break_time: i64,
+    pub task_time: i64,
+    pub maxno_min_breaks: i64,
+}
 
-pub fn readin_settings(config_path: &str) -> ConfigOptions {
+pub fn readin_settings(config_path: &str) -> Result<ConfigOptions, Box<dyn Error>> {
     // Read in configuration
     let mut settings = config::Config::new();
     settings.merge(config::File::with_name(config_path))?;
 
     // get the paths to the task file and sound file
-    let task_path = settings.get_str("task_filepath")?;
+    let task_path = settings.get("task_filepath")?;
     assert!(
         Path::new(&task_path).exists(),
         "task filepath does not exist"
     );
 
-    let sound_path = settings.get_str("sound_filepath")?;
+    let sound_path = settings.get("sound_filepath")?;
     assert!(
         Path::new(&sound_path).exists(),
         "sound filepath does not exist"
@@ -120,15 +115,15 @@ pub fn readin_settings(config_path: &str) -> ConfigOptions {
     let task_time = settings.get_int("task_time")?;
     let maxno_min_breaks = settings.get_int("maxno_short_breaks")?;
 
-    Ok((
+    Ok(ConfigOptions {
         task_path,
         sound_path,
         tags,
         use_due_dates,
-        tag_weights,
+        initial_tag_weights: tag_weights,
         min_break_time,
         max_break_time,
         task_time,
         maxno_min_breaks,
-    ))
+    })
 }
