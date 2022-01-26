@@ -26,8 +26,8 @@ pub struct Config {
 }
 
 impl Default for Config {
-    fn default() -> Config {
-        Config {
+    fn default() -> Self {
+        Self {
             exit_key: Key::Char('q'),
             tick_rate: Duration::from_millis(250),
         }
@@ -35,10 +35,11 @@ impl Default for Config {
 }
 
 impl Events {
-    pub fn new() -> Events {
-        Events::with_config(Config::default())
+    pub fn new() -> Self {
+        Self::with_config(Config::default())
     }
-    pub fn with_config(config: Config) -> Events {
+
+    pub fn with_config(config: Config) -> Self {
         let (tx, rx) = mpsc::channel();
         let input_handle = {
             let tx = tx.clone();
@@ -56,7 +57,7 @@ impl Events {
             })
         };
         let tick_handle = {
-            //let tx = tx.clone();
+            // let tx = tx.clone();
             thread::spawn(move || {
                 let tx = tx.clone();
                 loop {
@@ -65,7 +66,7 @@ impl Events {
                 }
             })
         };
-        Events {
+        Self {
             rx,
             input_handle,
             tick_handle,

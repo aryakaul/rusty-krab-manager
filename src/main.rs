@@ -14,9 +14,11 @@ use assignment_utils::{
 use clap::ArgMatches;
 use rand_utils::roll_die;
 use rodio::Sink;
+use settings_util::ConfigOptions;
 use std::error::Error;
 use std::fs;
 use std::io;
+use std::path::Path;
 use termion::event::Key;
 use termion::input::MouseTerminal;
 use termion::raw::IntoRawMode;
@@ -33,7 +35,7 @@ use ui::{
 #[macro_use]
 extern crate pathsep;
 //#[macro_use]
-//extern crate serde_derive;
+// extern crate serde_derive;
 
 // this function reads in the task list provided in
 // settings and then randomly selects one task to
@@ -48,7 +50,7 @@ fn choose_task(
     //  the vector of tag weights, and the
     //  vector of booleans denoting whether or not to
     //  use tag weights
-    configured_task_path: &str,
+    configured_task_path: &Path,
     vector_of_tags: &[String],
     initial_tag_weights: &[f64],
     configured_use_of_due_dates: &[bool],
@@ -84,23 +86,23 @@ fn choose_task(
     (assign_string, string_alltask_vec, weighttable_vec)
 }
 
-fn load_or_create_configuration_file(args: &ArgMatches) -> String {
+fn load_or_create_configuration_file(args: &ArgMatches) -> io::Result<String> {
     if let Some(c) = args.value_of("config") {
         println!("Value for config: {}", c);
-        c.to_string()
+        Ok(c.to_string())
     } else {
         if let Some(mut config_dir) = dirs::config_dir() {
             config_dir.push("rusty-krab-manager");
             if !config_dir.exists() {
                 println!("Generating config directories...");
-                let _ = fs::create_dir_all(config_dir);
+                fs::create_dir_all(config_dir)?;
             }
         }
-        default_files::create_default_files();
+        default_files::create();
         let mut fullpath = dirs::config_dir().unwrap();
         fullpath.push("rusty-krab-manager");
         fullpath.push("config.toml");
-        return fullpath.to_str().unwrap().to_string();
+        Ok(fullpath.to_str().unwrap().to_string())
     }
 }
 
@@ -117,10 +119,10 @@ fn main() -> Result<(), Box<dyn Error>> {
         )
         .get_matches();
 
-    let config = load_or_create_configuration_file(&matches);
+    let config = load_or_create_configuration_file(&matches)?;
 
     // set config variables
-    let (
+    let ConfigOptions {
         task_path,
         sound_path,
         tags,
@@ -130,7 +132,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         max_break_time,
         task_time,
         maxno_min_breaks,
-    ) = settings_util::readin_settings(&config)?;
+    } = settings_util::readin_settings(&config)?;
 
     // initialize audio sink
     let (_stream, stream_handle) = rodio::OutputStream::try_default().unwrap();
@@ -200,7 +202,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     .direction(Direction::Horizontal)
                     .constraints([Constraint::Percentage(75), Constraint::Percentage(25)].as_ref())
                     .split(chunks[0]);
-                //draw_gauge(&mut f, &app, chunks[2]);
+                // draw_gauge(&mut f, &app, chunks[2]);
                 draw_gauge(f, &app, chunks[2]);
                 draw_task_table(f, &mut app, chunks[1]);
                 draw_current_task(f, &app, mini_chunks[0]);
