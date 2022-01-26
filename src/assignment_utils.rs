@@ -2,14 +2,14 @@ use super::fileops_utils::lines_from_file;
 use chrono::prelude::*;
 use std::collections::HashMap;
 use std::fmt;
+use std::path::Path;
 use std::process::exit;
 
-//
 // THESE ARE ALL FUNCTIONS RELATED TO THE ASSIGNMENT
 // STRUCTURE
 //
 
-/* Define 'Assignment' object */
+// Define 'Assignment' object
 pub struct Assignment {
     pub name: String,
     pub tag: String,
@@ -38,11 +38,10 @@ impl Assignment {
     }
 }
 
-/* Take all minutes until due from all assignments. Find the
- * largest value. Divide that value by all values.
- * Sum these values. Use that as the denominator for all
- * values. Return this probability distribution.
- */
+// Take all minutes until due from all assignments. Find the
+// largest value. Divide that value by all values.
+// Sum these values. Use that as the denominator for all
+// values. Return this probability distribution.
 fn turn_timetilldue_into_pdf(due: Vec<i64>) -> Vec<f64> {
     let mut biggest = 0.0;
     for i in &due {
@@ -50,9 +49,9 @@ fn turn_timetilldue_into_pdf(due: Vec<i64>) -> Vec<f64> {
             biggest = *i as f64;
         }
     }
-    //println!("{}", biggest);
-    //let biggest: f64 = due.iter().max().unwrap();
-    //let biggest = 100.0;
+    // println!("{}", biggest);
+    // let biggest: f64 = due.iter().max().unwrap();
+    // let biggest = 100.0;
     let mut pdf: Vec<f64> = Vec::with_capacity(due.len());
     for i in due {
         pdf.push(biggest / i as f64);
@@ -65,21 +64,18 @@ fn turn_timetilldue_into_pdf(due: Vec<i64>) -> Vec<f64> {
     pdf
 }
 
-/*
- * Get the amount of time until a given assignment is due in minutes
- */
+// Get the amount of time until a given assignment is due in minutes
 pub fn find_timeuntildue(due_date: DateTime<Local>) -> i64 {
     let curr_local: DateTime<Local> = Local::now();
     due_date.signed_duration_since(curr_local).num_minutes()
-    //duration
+    // duration
 }
 
-/*
- * Turn a vector containing all assignments, and return a Vec<f64>
- * that is your probability density function for each assignment
- * the index tracks the same assignment
- */
-//pub fn turn_assignmentvector_into_pdf(assign: &Vec<Assignment>, use_due: bool) -> Vec<f64> {
+// Turn a vector containing all assignments, and return a Vec<f64>
+// that is your probability density function for each assignment
+// the index tracks the same assignment
+// pub fn turn_assignmentvector_into_pdf(assign: &Vec<Assignment>, use_due:
+// bool) -> Vec<f64> {
 pub fn turn_assignmentvector_into_pdf(assign: &[Assignment], use_due: bool) -> Vec<f64> {
     if use_due {
         let mut min_till_due: Vec<i64> = Vec::new();
@@ -93,12 +89,10 @@ pub fn turn_assignmentvector_into_pdf(assign: &[Assignment], use_due: bool) -> V
     }
 }
 
-/*
- * Read in the tasks from the task file path and config tag list
- * Convert these into a hashmap linking each tag to a vector of
- * assignments associated with that tag
- */
-pub fn readin_tasks(filepath: &str, tag_list: &[String]) -> HashMap<String, Vec<Assignment>> {
+// Read in the tasks from the task file path and config tag list
+// Convert these into a hashmap linking each tag to a vector of
+// assignments associated with that tag
+pub fn readin_tasks(filepath: &Path, tag_list: &[String]) -> HashMap<String, Vec<Assignment>> {
     let lines = lines_from_file(filepath);
     let mut tag_to_taskvectors: HashMap<String, Vec<Assignment>> = HashMap::new();
     for tags in tag_list {
@@ -126,7 +120,7 @@ pub fn readin_tasks(filepath: &str, tag_list: &[String]) -> HashMap<String, Vec<
             tag: String::from(tag),
             due_time: String::from(due_date),
         };
-        //println!("{}", new_assign);
+        // println!("{}", new_assign);
         if find_timeuntildue(new_assign.convert_due_date()) < 0 {
             continue;
         }
@@ -139,7 +133,7 @@ pub fn readin_tasks(filepath: &str, tag_list: &[String]) -> HashMap<String, Vec<
         eprintln!(
             "The task list is empty, or all tasks in your list are overdue.
 Fill the file {} with your tasks.",
-            filepath
+            filepath.display()
         );
         exit(1);
     }
@@ -156,9 +150,9 @@ pub fn hashmap_to_taskvector(
     for tags in tag_vector {
         let assign_vec = tagmap.get(tags).unwrap();
         for item in assign_vec {
-            //for i in 0..assign_vec.len() {
+            // for i in 0..assign_vec.len() {
             let mut new = vec![];
-            //let curr_assign = &assign_vec[i];
+            // let curr_assign = &assign_vec[i];
             let curr_assign = item;
             new.push(curr_assign.tag.clone());
             new.push(curr_assign.name.clone());
@@ -221,24 +215,16 @@ pub fn taskvector_to_stringvect(curr_assign: &Assignment) -> Vec<String> {
     toret
 }
 
-/*
- * Convert the vector of tags from the config file to a hashmap
- * linking each tag to a integer counter
- */
-pub fn get_tag_counter_hashmap(tag_vector: &[String]) -> HashMap<String, i64> {
-    let mut toret: HashMap<String, i64> = HashMap::new();
-    for tags in tag_vector {
-        toret.insert(tags.to_string(), 0);
-    }
-    toret
+// Convert the vector of tags from the config file to a hashmap
+// linking each tag to an integer counter
+pub fn get_tag_counter_hashmap(tag_vector: &[String]) -> HashMap<&String, i64> {
+    tag_vector.iter().map(|tag| (tag, 0)).collect()
 }
 
-/*
- * Convert the task hashmap counter to a vector of string tuples
- * to be displayed.
- */
+// Convert the task hashmap counter to a vector of string tuples
+// to be displayed.
 pub fn convert_hashmap_to_tuplevector(
-    x: &HashMap<String, i64>,
+    x: &HashMap<&String, i64>,
     tag: &[String],
 ) -> Vec<(String, String)> {
     let mut toret: Vec<(String, String)> = Vec::new();
@@ -269,10 +255,10 @@ pub fn update_tagweights(
         }
     }
     let to_add = xi / f64::from(ctr);
-    //for i in 0..vector_of_tags.len() {
+    // for i in 0..vector_of_tags.len() {
     for item in updated_tag_weights.iter_mut().take(vector_of_tags.len()) {
         if *item != 0.0 {
-            //updated_tag_weights[i] += to_add;
+            // updated_tag_weights[i] += to_add;
             *item += to_add;
         }
     }

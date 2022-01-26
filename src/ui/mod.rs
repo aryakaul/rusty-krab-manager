@@ -16,12 +16,13 @@ pub struct WeightTable {
 }
 
 impl WeightTable {
-    pub fn new(weight_table_vec: Vec<Vec<String>>) -> WeightTable {
-        WeightTable {
+    pub fn new(weight_table_vec: Vec<Vec<String>>) -> Self {
+        Self {
             state: TableState::default(),
             items: weight_table_vec,
         }
     }
+
     pub fn next(&mut self) {
         let i = match self.state.selected() {
             Some(i) => {
@@ -35,6 +36,7 @@ impl WeightTable {
         };
         self.state.select(Some(i));
     }
+
     pub fn previous(&mut self) {
         let i = match self.state.selected() {
             Some(i) => {
@@ -50,9 +52,7 @@ impl WeightTable {
     }
 }
 
-/*
- * draw weight table in the specificed rectangle.
- */
+// draw weight table in the specificed rectangle.
 pub fn draw_weights<B>(f: &mut Frame<B>, tagweight_table: &mut WeightTable, area: Rect)
 where
     B: Backend,
@@ -120,6 +120,7 @@ impl<'a> HelpTable<'a> {
             ],
         }
     }
+
     pub fn next(&mut self) {
         let i = match self.state.selected() {
             Some(i) => {
@@ -133,6 +134,7 @@ impl<'a> HelpTable<'a> {
         };
         self.state.select(Some(i));
     }
+
     pub fn previous(&mut self) {
         let i = match self.state.selected() {
             Some(i) => {
@@ -159,7 +161,7 @@ where
     let widths = [Constraint::Percentage(20), Constraint::Percentage(80)];
     let rows = helptable.items.iter().map(|i| {
         let cells = i.iter().map(|c| Cell::from(*c));
-        //cells.pop;
+        // cells.pop;
         Row::new(cells).style(normal_style)
     });
 
@@ -183,14 +185,12 @@ where
     f.render_stateful_widget(table, area, &mut helptable.state);
 }
 
-/*
- * Define the current TUI application
- * and its variables
- */
+// Define the current TUI application
+// and its variables
 pub struct App {
     state: TableState,
     pub items: Vec<Vec<String>>,
-    //pub selected: usize,
+    // pub selected: usize,
     pub progress: f64,
     pub current_task: Vec<String>,
     pub paused: bool,
@@ -198,19 +198,17 @@ pub struct App {
 }
 
 impl App {
-    /*
-     * Instantiate the default application.
-     * If all goes according to plan none of these
-     * values are actually used. Used for debugging.
-     */
-    pub fn new() -> App {
-        App {
+    // Instantiate the default application.
+    // If all goes according to plan none of these
+    // values are actually used. Used for debugging.
+    pub fn new() -> Self {
+        Self {
             items: vec![vec![
                 String::from("GANG"),
                 String::from("GANG"),
                 String::from("GANG"),
             ]],
-            //selected: 0,
+            // selected: 0,
             state: TableState::default(),
             progress: 0.0,
             current_task: vec![
@@ -229,11 +227,9 @@ impl App {
         }
     }
 
-    /*
-     * Function to update the app.
-     * This runs every 250 milliseconds and returns
-     * true when the app hits 100%
-     */
+    // Function to update the app.
+    // This runs every 250 milliseconds and returns
+    // true when the app hits 100%
     pub fn update(&mut self, minutes: i64) -> bool {
         self.progress += (250.0 / 60000.0) / minutes as f64;
         if self.progress > 1.0 {
@@ -256,6 +252,7 @@ impl App {
         };
         self.state.select(Some(i));
     }
+
     pub fn previous(&mut self) {
         let i = match self.state.selected() {
             Some(i) => {
@@ -271,10 +268,8 @@ impl App {
     }
 }
 
-/*
- * Draw the gauge used to showcase the remaining
- * amount of time left to do whatever.
- */
+// Draw the gauge used to showcase the remaining
+// amount of time left to do whatever.
 pub fn draw_gauge<B>(f: &mut Frame<B>, app: &App, area: Rect)
 where
     B: Backend,
@@ -291,22 +286,20 @@ where
     f.render_widget(gauge, area);
 }
 
-/*
- * Draw the task table to showcase what tasks
- * the rusty-krab-manager has read from the given
- * task list
- */
+// Draw the task table to showcase what tasks
+// the rusty-krab-manager has read from the given
+// task list
 pub fn draw_task_table<B>(f: &mut Frame<B>, app: &mut App, area: Rect)
 where
     B: Backend,
 {
     // set basic values
-    //let padding = 5;
-    /*let offset = area
-    .height
-    .checked_sub(padding)
-    .and_then(|height| app.selected.checked_sub(height as usize))
-    .unwrap_or(0);*/
+    // let padding = 5;
+    // let offset = area
+    // .height
+    // .checked_sub(padding)
+    // .and_then(|height| app.selected.checked_sub(height as usize))
+    // .unwrap_or(0);
 
     let selected_style = Style::default()
         .fg(Color::Yellow)
@@ -320,14 +313,13 @@ where
 
     // code snippet based on spotify-tui. essentially allows
     // scrollable tables
-    /*
-    let rows = app.items.iter().skip(offset).enumerate().map(|(i, item)| {
-        if Some(i) == app.selected.checked_sub(offset) {
-            Row::StyledData(item.into_iter(), selected_style)
-        } else {
-            Row::StyledData(item.into_iter(), normal_style)
-        }
-    });*/
+    // let rows = app.items.iter().skip(offset).enumerate().map(|(i, item)| {
+    // if Some(i) == app.selected.checked_sub(offset) {
+    // Row::StyledData(item.into_iter(), selected_style)
+    // } else {
+    // Row::StyledData(item.into_iter(), normal_style)
+    // }
+    // });
     let rows = app.items.iter().map(|i| {
         let cells = i.iter().map(|c| {
             let x = c.clone();
@@ -357,9 +349,7 @@ where
     f.render_stateful_widget(task_table, area, &mut app.state);
 }
 
-/*
- * Draw the current task that has been selected.
- */
+// Draw the current task that has been selected.
 pub fn draw_current_task<B>(f: &mut Frame<B>, app: &App, area: Rect)
 where
     B: Backend,
@@ -390,10 +380,8 @@ where
     f.render_widget(task_paragraph, area);
 }
 
-/*
- * Draw the counter to keep track of the number
- * of tags done
- */
+// Draw the counter to keep track of the number
+// of tags done
 pub fn draw_tag_counter<B>(f: &mut Frame<B>, app: &App, area: Rect)
 where
     B: Backend,

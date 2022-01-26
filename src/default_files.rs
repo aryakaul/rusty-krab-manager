@@ -1,7 +1,6 @@
 use serde::Serialize;
 use std::fs::File;
 use std::io::Write;
-//use std::path::PathBuf;
 use std::path::Path;
 use tinytemplate::TinyTemplate;
 
@@ -9,7 +8,7 @@ use tinytemplate::TinyTemplate;
 // 1. Config      ($CONFIG/rusty-krab-manager/config.toml)
 // 2. "Ocean man" ($CONFIG/rusty-krab-manager/ocean_man.mp3)
 // 3. Tasks       ($HOME/rusty-krab-manager-tasks.txt)
-pub fn create_default_files() {
+pub fn create() {
     let mut config_subdir = dirs::config_dir().unwrap();
     config_subdir.push("rusty-krab-manager");
     let mut config_filepath = config_subdir.clone();
