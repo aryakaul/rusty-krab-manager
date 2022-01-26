@@ -69,3 +69,8 @@
 * bumped dirs to v4.0.0
 * bumped tui to v0.16
 * fixed ALL clippy warnings
+
+## X.X.X
+* bumped rodio to v0.15
+* bumped clap to v3.0.12
+* refactoring courtesy of @danieleades

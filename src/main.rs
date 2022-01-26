@@ -1,9 +1,9 @@
 mod assignment_utils;
 mod default_files;
 mod fileops_utils;
+mod posttask_utils;
 mod rand_utils;
 mod settings_util;
-mod sound_utils;
 mod ui;
 
 use assignment_utils::{
@@ -313,25 +313,25 @@ fn main() -> Result<(), Box<dyn Error>> {
             Event::Tick => {
                 // if app is paused do nothing.
                 if app.paused {
-                } else if its_task_time {
-                    // is it time for a task?
 
+                    // is it time for a task?
+                } else if its_task_time {
                     // is next break a long break?
                     if min_break_ctr == maxno_min_breaks {
                         its_max_break_time = app.update(task_time);
                     } else {
-                        // otherwise have a min break
+                        // otherwise have a small break
                         its_min_break_time = app.update(task_time);
                     }
 
-                    // if task time is up. reset task time. increment counter
-                    //  task tracker
+                    // if task time is up. reset task time. increment tag counter
                     if its_min_break_time || its_max_break_time {
+                        posttask_utils::playsound(&sound_path, &sink)?;
+                        posttask_utils::shownotif()?;
                         let mut fin_task_tag = app.current_task[0].clone();
                         fin_task_tag.pop();
                         *tag_ctr.get_mut(&fin_task_tag).unwrap() += 1;
                         app.completed = convert_hashmap_to_tuplevector(&tag_ctr, &tags);
-                        sound_utils::playsound(&sound_path, &sink)?;
                         its_task_time = false;
                     };
 
@@ -342,7 +342,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 
                     // if small break over, reroll task
                     if its_task_time {
-                        sound_utils::playsound(&sound_path, &sink)?;
+                        posttask_utils::playsound(&sound_path, &sink)?;
+                        posttask_utils::shownotif()?;
                         min_break_ctr += 1;
                         let (curr_task, items_to_list, weighttable_vec) =
                             choose_task(&task_path, &tags, &initial_tag_weights, &use_due_dates);
@@ -359,7 +360,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 
                     // if big break over, reroll task
                     if its_task_time {
-                        sound_utils::playsound(&sound_path, &sink)?;
+                        posttask_utils::playsound(&sound_path, &sink)?;
+                        posttask_utils::shownotif()?;
                         min_break_ctr = 0;
                         let (curr_task, items_to_list, weighttable_vec) =
                             choose_task(&task_path, &tags, &initial_tag_weights, &use_due_dates);

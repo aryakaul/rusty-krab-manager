@@ -1,3 +1,4 @@
+use notify_rust::Notification;
 use rodio::Sink;
 use std::error::Error;
 use std::fs::File;
@@ -12,5 +13,14 @@ pub fn playsound(filepath: &str, sink: &Sink) -> Result<(), Box<dyn Error>> {
     let source = rodio::Decoder::new(BufReader::new(file)).unwrap();
     sink.append(source);
     sink.play();
+    Ok(())
+}
+
+pub fn shownotif() -> Result<(), Box<dyn Error>> {
+    Notification::new()
+        .summary("Rusty-Krab-Manager")
+        .body("Time is up!")
+        .icon("clock")
+        .show()?;
     Ok(())
 }
