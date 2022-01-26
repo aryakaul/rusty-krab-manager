@@ -8,6 +8,7 @@ use std::path::{Path, PathBuf};
 pub struct ConfigOptions {
     pub task_path: PathBuf,
     pub sound_path: PathBuf,
+    pub sound_volume: f64,
     pub tags: Vec<String>,
     pub use_due_dates: Vec<bool>,
     pub initial_tag_weights: Vec<f64>,
@@ -29,11 +30,12 @@ pub fn readin_settings(config_path: &str) -> Result<ConfigOptions, Box<dyn Error
         "task filepath does not exist"
     );
 
-    let sound_path = settings.get("sound_filepath")?;
+    let sound_path = settings.get("sound.file")?;
     assert!(
         Path::new(&sound_path).exists(),
-        "sound filepath does not exist"
+        "Sound filepath does not exist"
     );
+    let sound_volume = settings.get_float("sound.volume")?;
 
     // get the vector of tags
     let tags = settings.get_array("tags")?;
@@ -118,6 +120,7 @@ pub fn readin_settings(config_path: &str) -> Result<ConfigOptions, Box<dyn Error
     Ok(ConfigOptions {
         task_path,
         sound_path,
+        sound_volume,
         tags,
         use_due_dates,
         initial_tag_weights: tag_weights,
