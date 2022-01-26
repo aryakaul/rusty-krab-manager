@@ -135,6 +135,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     // initialize audio sink
     let (_stream, stream_handle) = rodio::OutputStream::try_default().unwrap();
     let sink = Sink::try_new(&stream_handle).unwrap();
+    //TODO set volume to user value
     sink.set_volume(0.5);
 
     // initialize tag counter

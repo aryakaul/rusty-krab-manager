@@ -34,10 +34,10 @@ pub fn readin_settings(config_path: &str) -> ConfigOptions {
         "task filepath does not exist"
     );
 
-    let sound_path = settings.get_str("sound_filepath")?;
+    let sound_path = settings.get_str("sound_filepath");
     assert!(
         Path::new(&sound_path).exists(),
-        "sound filepath does not exist"
+        "Sound filepath does not exist"
     );
 
     // get the vector of tags
