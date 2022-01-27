@@ -82,7 +82,12 @@ fn choose_task(
     // generate table string and current task string. this is for the tui
     let assign_string = taskvector_to_stringvect(chosen_assign);
     let string_alltask_vec = hashmap_to_taskvector(&tag_to_vector_map, vector_of_tags);
-    (assign_string, string_alltask_vec, weighttable_vec, chosen_assign.name.clone())
+    (
+        assign_string,
+        string_alltask_vec,
+        weighttable_vec,
+        chosen_assign.name.clone(),
+    )
 }
 
 fn load_or_create_configuration_file(args: &ArgMatches) -> io::Result<String> {

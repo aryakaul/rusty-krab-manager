@@ -1,10 +1,10 @@
 use notify_rust::Notification;
 use rodio::decoder::DecoderError;
 use rodio::Sink;
+use std::error::Error;
 use std::fs::File;
 use std::io::BufReader;
 use std::path::Path;
-use std::error::Error;
 
 // Play a given sound given a file path to that sound and
 // a preexisting rodio sink
