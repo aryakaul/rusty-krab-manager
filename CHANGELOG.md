@@ -78,3 +78,4 @@
 * added notification on what current task is
 * added version to clap arguments
 * bumped tui to v0.17 and switched to crossterm backend
+* BREAKING CHANGE: config file format for sound is now different! check the example under assets/
