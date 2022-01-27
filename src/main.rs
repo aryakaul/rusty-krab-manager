@@ -23,7 +23,8 @@ use termion::event::Key;
 use termion::input::MouseTerminal;
 use termion::raw::IntoRawMode;
 use termion::screen::AlternateScreen;
-use tui::backend::TermionBackend;
+//use tui::backend::TermionBackend;
+use tui::backend::CrosstermBackend;
 use tui::layout::{Constraint, Direction, Layout};
 use tui::Terminal;
 use ui::event::{Event, Events};
@@ -34,8 +35,6 @@ use ui::{
 
 #[macro_use]
 extern crate pathsep;
-//#[macro_use]
-// extern crate serde_derive;
 
 // this function reads in the task list provided in
 // settings and then randomly selects one task to
@@ -109,12 +108,21 @@ fn load_or_create_configuration_file(args: &ArgMatches) -> io::Result<String> {
 fn main() -> Result<(), Box<dyn Error>> {
     let matches = clap::App::new("Rusty-Krab-Manager")
         .about("Pomodoro inspired TUI task manager")
+        .author("Arya K.")
+        .version("X.X")
         .arg(
             clap::Arg::new("config")
                 .short('c')
                 .long("config")
                 .value_name("FILE")
                 .help("Path for a config file")
+                .takes_value(true),
+        )
+        .arg(
+            clap::Arg::new("mute")
+                .short('m')
+                .long("mute")
+                .help("Do not play sound after ")
                 .takes_value(true),
         )
         .get_matches();
@@ -152,7 +160,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let stdout = io::stdout().into_raw_mode()?;
     let stdout = MouseTerminal::from(stdout);
     let stdout = AlternateScreen::from(stdout);
-    let backend = TermionBackend::new(stdout);
+    let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
     terminal.hide_cursor()?;
 
