@@ -3,9 +3,6 @@
 # path to the task file
 task_filepath = "{task_filepath}"
 
-# path to notification sound
-sound_filepath = "{sound_filepath}"
-
 # put tags for each assignment. Order dictates the rest
 #tags = [ "rando-projects", "schoolwork", "personal" ]
 tags = [ "school", "job", "personal" ]
@@ -22,6 +19,11 @@ task_time = 20
 
 # number of small breaks before big break
 maxno_short_breaks = 2
+
+[sound]
+# path to notification sound
+file = "{sound_filepath}"
+volume = 0.3
 
 # weights for each tag project are broken down by day of the week.
 ## i.e. if you have two tags: ["schoolwork", "personal"] and weights
