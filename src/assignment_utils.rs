@@ -4,12 +4,14 @@ use std::collections::HashMap;
 use std::fmt;
 use std::path::Path;
 use std::process::exit;
+use std::str::FromStr;
 
 // THESE ARE ALL FUNCTIONS RELATED TO THE ASSIGNMENT
 // STRUCTURE
 //
 
 // Define 'Assignment' object
+#[derive(Clone)]
 pub struct Assignment {
     pub name: String,
     pub tag: String,
@@ -38,25 +40,43 @@ impl Assignment {
     }
 }
 
+impl FromStr for Assignment {
+    type Err = &'static str;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let task_vec: Vec<&str> = s.split(',').collect();
+
+        // ignore all lines in todo list that do not have 3
+        // fields or that start with '#'
+        if task_vec.len() != 3 || task_vec[0].starts_with('#') {
+            return Err("invalid!");
+        }
+        let tag = task_vec[0].trim();
+        let name = task_vec[1].trim();
+        let due_date = task_vec[2].trim();
+        Ok(Self {
+            name: String::from(name),
+            tag: String::from(tag),
+            due_time: String::from(due_date),
+        })
+    }
+}
+
 // Take all minutes until due from all assignments. Find the
 // largest value. Divide that value by all values.
 // Sum these values. Use that as the denominator for all
 // values. Return this probability distribution.
 fn turn_timetilldue_into_pdf(due: Vec<i64>) -> Vec<f64> {
-    let mut biggest = 0.0;
-    for i in &due {
-        if *i as f64 > biggest {
-            biggest = *i as f64;
-        }
-    }
-    // println!("{}", biggest);
-    // let biggest: f64 = due.iter().max().unwrap();
-    // let biggest = 100.0;
+    let biggest = due.iter().max().copied().unwrap_or_default();
+
     let mut pdf: Vec<f64> = Vec::with_capacity(due.len());
+    let mut sum = 0_f64;
+
     for i in due {
-        pdf.push(biggest / i as f64);
+        let value = biggest as f64 / i as f64;
+        pdf.push(value);
+        sum += value;
     }
-    let sum: f64 = pdf.iter().sum();
 
     for prob in &mut pdf {
         *prob /= sum;
@@ -66,9 +86,7 @@ fn turn_timetilldue_into_pdf(due: Vec<i64>) -> Vec<f64> {
 
 // Get the amount of time until a given assignment is due in minutes
 pub fn find_timeuntildue(due_date: DateTime<Local>) -> i64 {
-    let curr_local: DateTime<Local> = Local::now();
-    due_date.signed_duration_since(curr_local).num_minutes()
-    // duration
+    due_date.signed_duration_since(Local::now()).num_minutes()
 }
 
 // Turn a vector containing all assignments, and return a Vec<f64>
@@ -78,10 +96,10 @@ pub fn find_timeuntildue(due_date: DateTime<Local>) -> i64 {
 // bool) -> Vec<f64> {
 pub fn turn_assignmentvector_into_pdf(assign: &[Assignment], use_due: bool) -> Vec<f64> {
     if use_due {
-        let mut min_till_due: Vec<i64> = Vec::new();
-        for item in assign {
-            min_till_due.push(find_timeuntildue(item.convert_due_date()));
-        }
+        let min_till_due = assign
+            .iter()
+            .map(|item| find_timeuntildue(item.convert_due_date()))
+            .collect();
         turn_timetilldue_into_pdf(min_till_due)
     } else {
         let uniform_prob: f64 = 1.0 / assign.len() as f64;
@@ -94,45 +112,32 @@ pub fn turn_assignmentvector_into_pdf(assign: &[Assignment], use_due: bool) -> V
 // assignments associated with that tag
 pub fn readin_tasks(filepath: &Path, tag_list: &[String]) -> HashMap<String, Vec<Assignment>> {
     let lines = lines_from_file(filepath);
-    let mut tag_to_taskvectors: HashMap<String, Vec<Assignment>> = HashMap::new();
-    for tags in tag_list {
-        let task_vector: Vec<Assignment> = Vec::new();
-        tag_to_taskvectors.insert(tags.to_string(), task_vector);
-    }
+    let mut tag_to_taskvectors: HashMap<_, _> = tag_list
+        .iter()
+        .map(|tags| (tags.to_string(), Vec::default()))
+        .collect();
 
-    for line in lines {
-        let task_vec: Vec<&str> = line.split(',').collect();
+    for new_assign in lines
+        .iter()
+        .filter_map(|line| Assignment::from_str(line).ok())
+        .filter(|new_assign| find_timeuntildue(new_assign.convert_due_date()) >= 0)
+    {
+        assert!(
+            tag_to_taskvectors.contains_key(&new_assign.tag),
+            "Tag shown in task list not described in config: {}",
+            new_assign.tag
+        );
 
-        // ignore all lines in todo list that do not have 3
-        // fields or that start with '#'
-        if task_vec.len() != 3 || task_vec[0].starts_with('#') {
-            continue;
-        }
-        let tag = task_vec[0].trim();
-        if !tag_to_taskvectors.contains_key(tag) {
-            println!("Tag shown in task list not described in config.");
-            panic!("{}", tag);
-        };
-        let name = task_vec[1].trim();
-        let due_date = task_vec[2].trim();
-        let new_assign = Assignment {
-            name: String::from(name),
-            tag: String::from(tag),
-            due_time: String::from(due_date),
-        };
-        // println!("{}", new_assign);
-        if find_timeuntildue(new_assign.convert_due_date()) < 0 {
-            continue;
-        }
-
-        let curr_vector = tag_to_taskvectors.get_mut(tag).unwrap();
-        curr_vector.push(new_assign);
+        tag_to_taskvectors
+            .get_mut(&new_assign.tag)
+            .unwrap()
+            .push(new_assign);
     }
 
     if tag_to_taskvectors.iter().all(|tag| tag.1.is_empty()) {
         eprintln!(
-            "The task list is empty, or all tasks in your list are overdue.
-Fill the file {} with your tasks.",
+            "The task list is empty, or all tasks in your list are overdue.\nFill the file {} \
+             with your tasks.",
             filepath.display()
         );
         exit(1);
@@ -146,21 +151,12 @@ pub fn hashmap_to_taskvector(
     tagmap: &HashMap<String, Vec<Assignment>>,
     tag_vector: &[String],
 ) -> Vec<Vec<String>> {
-    let mut toret = vec![];
-    for tags in tag_vector {
-        let assign_vec = tagmap.get(tags).unwrap();
-        for item in assign_vec {
-            // for i in 0..assign_vec.len() {
-            let mut new = vec![];
-            // let curr_assign = &assign_vec[i];
-            let curr_assign = item;
-            new.push(curr_assign.tag.clone());
-            new.push(curr_assign.name.clone());
-            new.push(curr_assign.due_time.clone());
-            toret.push(new);
-        }
-    }
-    toret
+    tag_vector
+        .iter()
+        .flat_map(|tags| tagmap.get(tags).unwrap())
+        .cloned()
+        .map(|item| vec![item.tag, item.name, item.due_time])
+        .collect()
 }
 
 pub fn create_weighttable(
@@ -170,21 +166,17 @@ pub fn create_weighttable(
     use_dues: &[bool],
 ) -> Vec<Vec<String>> {
     let mut toret = vec![];
-    for i_tags in 0..tag_vector.len() {
-        let tags = &tag_vector[i_tags];
+    for (i_tags, tags) in tag_vector.iter().enumerate() {
+        let tag_weight = tag_weights[i_tags];
         let assign_vec = tagmap.get(tags).unwrap();
         let assign_pdf = turn_assignmentvector_into_pdf(assign_vec, use_dues[i_tags]);
-        for i in 0..assign_vec.len() {
+        for (i, curr_assign) in assign_vec.iter().enumerate() {
             let mut new = vec![];
-            let curr_assign = &assign_vec[i];
             new.push(curr_assign.tag.clone());
             new.push(curr_assign.name.clone());
-            new.push(format!("{:.2}%", tag_weights[i_tags] * 100.0));
+            new.push(format!("{:.2}%", tag_weight * 100.0));
             new.push(format!("{:.2}%", assign_pdf[i] * 100.0));
-            new.push(format!(
-                "{:.2}%",
-                (assign_pdf[i] * tag_weights[i_tags] * 100.0)
-            ));
+            new.push(format!("{:.2}%", (assign_pdf[i] * tag_weight * 100.0)));
             toret.push(new);
         }
     }
@@ -255,10 +247,8 @@ pub fn update_tagweights(
         }
     }
     let to_add = xi / f64::from(ctr);
-    // for i in 0..vector_of_tags.len() {
     for item in updated_tag_weights.iter_mut().take(vector_of_tags.len()) {
         if *item != 0.0 {
-            // updated_tag_weights[i] += to_add;
             *item += to_add;
         }
     }
