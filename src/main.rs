@@ -263,6 +263,11 @@ fn main() -> Result<(), Box<dyn Error>> {
                     app.progress = 1.0;
                 }
 
+                // rewind timer to beginning
+                Key::Char('0') => {
+                    app.progress = 0.0;
+                }
+
                 // QUIT
                 Key::Char('q') => {
                     break;
@@ -306,6 +311,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     _ => {}
                 },
 
+                // toggle help screen
                 Key::Char('h') => match curr_screen.as_str() {
                     "help" => {
                         curr_screen = String::from("tasks");

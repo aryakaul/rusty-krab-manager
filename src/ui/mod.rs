@@ -113,6 +113,7 @@ impl<'a> HelpTable<'a> {
                 vec!["r", "reroll the given task without marking as complete"],
                 vec!["c", "complete the given task and select a new one"],
                 vec!["f", "fast forward current task bar to completion"],
+                vec!["0", "rewid current task bar back to 0"],
                 vec!["p", "toggle pause"],
                 vec!["s", "access stats menu"],
                 vec!["q", "quit rusty-krab-manager"],
