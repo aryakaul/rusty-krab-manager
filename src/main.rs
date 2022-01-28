@@ -13,7 +13,7 @@ use assignment_utils::{
 };
 use clap::ArgMatches;
 use rand_utils::roll_die;
-use rodio::Sink;
+//use rodio::Sink;
 use settings_util::ConfigOptions;
 use std::error::Error;
 use std::fs;
@@ -149,9 +149,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     } = settings_util::readin_settings(&config)?;
 
     // initialize audio sink
-    let (_stream, stream_handle) = rodio::OutputStream::try_default().unwrap();
-    let sink = Sink::try_new(&stream_handle).unwrap();
-    sink.set_volume(sound_volume as f32);
+    //let (_stream, stream_handle) = rodio::OutputStream::try_default().unwrap();
+    //let sink = Sink::try_new(&stream_handle).unwrap();
+    //sink.set_volume(sound_volume as f32);
 
     // initialize tag counter
     let mut tag_ctr = get_tag_counter_hashmap(&tags);
@@ -347,7 +347,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 
                     // if task time is up. reset task time. increment tag counter
                     if its_min_break_time || its_max_break_time {
-                        posttask_utils::playsound(&sound_path, &sink)?;
+                        //posttask_utils::playsound(&sound_path, &sink)?;
+                        posttask_utils::playsound(&sound_path, sound_volume)?;
                         posttask_utils::finishnotif()?;
                         let mut fin_task_tag = app.current_task[0].clone();
                         fin_task_tag.pop();
@@ -363,7 +364,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 
                     // if small break over, reroll task
                     if its_task_time {
-                        posttask_utils::playsound(&sound_path, &sink)?;
+                        //posttask_utils::playsound(&sound_path, &sink)?;
+                        posttask_utils::playsound(&sound_path, sound_volume)?;
                         posttask_utils::finishnotif()?;
                         min_break_ctr += 1;
                         let (curr_task, items_to_list, weighttable_vec, chosen_assign) =
@@ -382,7 +384,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 
                     // if big break over, reroll task
                     if its_task_time {
-                        posttask_utils::playsound(&sound_path, &sink)?;
+                        //posttask_utils::playsound(&sound_path, &sink)?;
+                        posttask_utils::playsound(&sound_path, sound_volume)?;
                         posttask_utils::finishnotif()?;
                         min_break_ctr = 0;
                         let (curr_task, items_to_list, weighttable_vec, chosen_assign) =
