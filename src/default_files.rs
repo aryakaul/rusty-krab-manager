@@ -11,12 +11,10 @@ use tinytemplate::TinyTemplate;
 pub fn create() {
     let mut config_subdir = dirs::config_dir().unwrap();
     config_subdir.push("rusty-krab-manager");
-    let mut config_filepath = config_subdir.clone();
-    config_filepath.push("config.toml");
-    let mut sound_filepath = config_subdir.clone();
-    sound_filepath.push("ocean_man.mp3");
-    let mut task_filepath = config_subdir.clone();
-    task_filepath.push("example_tasks.csv");
+
+    let config_filepath = config_subdir.join("config.toml");
+    let sound_filepath = config_subdir.join("ocean_man.mp3");
+    let task_filepath = config_subdir.join("example_tasks.csv");
 
     create_default_file(
         &config_filepath,

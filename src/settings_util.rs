@@ -1,4 +1,5 @@
 use chrono::{Datelike, Local};
+use std::collections::HashMap;
 use std::error::Error;
 use std::path::{Path, PathBuf};
 
@@ -48,57 +49,36 @@ pub fn readin_settings(config_path: &str) -> Result<ConfigOptions, Box<dyn Error
         .into_iter()
         .map(|i| i.into_bool().unwrap())
         .collect();
+
     assert!(
         taglen == use_due_dates.len(),
         "use_due_dates vector length does not match number of tags in config"
     );
 
     // get weights tags for all days of the week
-    let weights_mon = settings.get_array("weights.mon")?;
-    let weights_mon: Vec<f64> = weights_mon
-        .into_iter()
-        .map(|i| i.into_float().unwrap())
-        .collect();
-    let weights_tue = settings.get_array("weights.tue")?;
-    let weights_tue: Vec<f64> = weights_tue
-        .into_iter()
-        .map(|i| i.into_float().unwrap())
-        .collect();
-    let weights_wed = settings.get_array("weights.wed")?;
-    let weights_wed: Vec<f64> = weights_wed
-        .into_iter()
-        .map(|i| i.into_float().unwrap())
-        .collect();
-    let weights_thu = settings.get_array("weights.thu")?;
-    let weights_thu: Vec<f64> = weights_thu
-        .into_iter()
-        .map(|i| i.into_float().unwrap())
-        .collect();
-    let weights_fri = settings.get_array("weights.fri")?;
-    let weights_fri: Vec<f64> = weights_fri
-        .into_iter()
-        .map(|i| i.into_float().unwrap())
-        .collect();
-    let weights_sat = settings.get_array("weights.sat")?;
-    let weights_sat: Vec<f64> = weights_sat
-        .into_iter()
-        .map(|i| i.into_float().unwrap())
-        .collect();
-    let weights_sun = settings.get_array("weights.sun")?;
-    let weights_sun: Vec<f64> = weights_sun
-        .into_iter()
-        .map(|i| i.into_float().unwrap())
-        .collect();
+    let mut weights_map = HashMap::new();
+    for day in ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] {
+        let path = format!("weights.{}", day);
+        let weights: Vec<f64> = settings
+            .get_array(&path)?
+            .into_iter()
+            .map(|i| i.into_float().unwrap())
+            .collect();
+        weights_map.insert(day, weights);
+    }
+
     let curr_day: u32 = Local::now().weekday().number_from_monday();
     let tag_weights = match curr_day {
-        1 => weights_mon,
-        2 => weights_tue,
-        3 => weights_wed,
-        4 => weights_thu,
-        5 => weights_fri,
-        6 => weights_sat,
-        _ => weights_sun,
-    };
+        1 => weights_map.remove("mon"),
+        2 => weights_map.remove("tue"),
+        3 => weights_map.remove("wed"),
+        4 => weights_map.remove("thu"),
+        5 => weights_map.remove("fri"),
+        6 => weights_map.remove("sat"),
+        7 => weights_map.remove("sun"),
+        _ => unreachable!(),
+    }
+    .unwrap();
     assert!(
         taglen == tag_weights.len(),
         "current day tag weights do not match number of tags in config"
