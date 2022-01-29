@@ -22,3 +22,7 @@ updates:
   - dependency-name: serde_derive
     versions:
     - 1.0.123
+- package-ecosystem: github-actions
+  directory: "/"
+  schedule:
+    interval: daily
