@@ -70,12 +70,13 @@
 * bumped tui to v0.16
 * fixed ALL clippy warnings
 
-## X.X.X
+## 2.0.0
 * bumped rodio to v0.15
 * bumped clap to v3.0.12
-* refactoring courtesy of @danieleades
+* LOTS of refactoring courtesy of @danieleades. thanks!
 * added notifications when gauge is complete
 * added notification on what current task is
 * added version to clap arguments
 * bumped tui to v0.17 and switched to crossterm backend
 * BREAKING CHANGE: config file format for sound is now different! check the example under assets/
+* add 0 to keyboard shortcuts

@@ -53,7 +53,7 @@ fn choose_task(
     vector_of_tags: &[String],
     initial_tag_weights: &[f64],
     configured_use_of_due_dates: &[bool],
-) -> (Vec<String>, Vec<Vec<String>>, Vec<Vec<String>>, String) {
+) -> (Vec<String>, Vec<Vec<String>>, Vec<Vec<String>>) {
     let tag_to_vector_map = readin_tasks(configured_task_path, vector_of_tags);
 
     let configured_relative_tag_weights =
@@ -82,12 +82,7 @@ fn choose_task(
     // generate table string and current task string. this is for the tui
     let assign_string = taskvector_to_stringvect(chosen_assign);
     let string_alltask_vec = hashmap_to_taskvector(&tag_to_vector_map, vector_of_tags);
-    (
-        assign_string,
-        string_alltask_vec,
-        weighttable_vec,
-        chosen_assign.name.clone(),
-    )
+    (assign_string, string_alltask_vec, weighttable_vec)
 }
 
 fn load_or_create_configuration_file(args: &ArgMatches) -> io::Result<String> {
@@ -157,9 +152,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut tag_ctr = get_tag_counter_hashmap(&tags);
 
     // Choose initial task
-    let (curr_task, items_to_list, weighttable_vec, chosen_assign) =
+    let (curr_task, items_to_list, weighttable_vec) =
         choose_task(&task_path, &tags, &initial_tag_weights, &use_due_dates);
-    posttask_utils::nextupnotif(&chosen_assign)?;
+    posttask_utils::nextupnotif(&curr_task[1])?;
 
     // Terminal initialization for UI
     let stdout = io::stdout().into_raw_mode()?;
@@ -235,9 +230,9 @@ fn main() -> Result<(), Box<dyn Error>> {
                         fin_task_tag.pop();
                         *tag_ctr.get_mut(&fin_task_tag).unwrap() += 1;
                         app.completed = convert_hashmap_to_tuplevector(&tag_ctr, &tags);
-                        let (curr_task, items_to_list, weighttable_vec, chosen_assign) =
+                        let (curr_task, items_to_list, weighttable_vec) =
                             choose_task(&task_path, &tags, &initial_tag_weights, &use_due_dates);
-                        posttask_utils::nextupnotif(&chosen_assign)?;
+                        posttask_utils::nextupnotif(&curr_task[1])?;
                         weight_table = WeightTable::new(weighttable_vec);
                         app.current_task = curr_task;
                         app.items = items_to_list;
@@ -248,9 +243,9 @@ fn main() -> Result<(), Box<dyn Error>> {
                 // reroll the currently selected task without marking current task as complete
                 Key::Char('r') => {
                     if its_task_time && !app.paused {
-                        let (curr_task, items_to_list, weighttable_vec, chosen_assign) =
+                        let (curr_task, items_to_list, weighttable_vec) =
                             choose_task(&task_path, &tags, &initial_tag_weights, &use_due_dates);
-                        posttask_utils::nextupnotif(&chosen_assign)?;
+                        posttask_utils::nextupnotif(&curr_task[1])?;
                         weight_table = WeightTable::new(weighttable_vec);
                         app.current_task = curr_task;
                         app.items = items_to_list;
@@ -372,9 +367,9 @@ fn main() -> Result<(), Box<dyn Error>> {
                         posttask_utils::playsound(&sound_path, &sink)?;
                         posttask_utils::finishnotif()?;
                         min_break_ctr += 1;
-                        let (curr_task, items_to_list, weighttable_vec, chosen_assign) =
+                        let (curr_task, items_to_list, weighttable_vec) =
                             choose_task(&task_path, &tags, &initial_tag_weights, &use_due_dates);
-                        posttask_utils::nextupnotif(&chosen_assign)?;
+                        posttask_utils::nextupnotif(&curr_task[1])?;
                         weight_table = WeightTable::new(weighttable_vec);
                         app.current_task = curr_task;
                         app.items = items_to_list;
@@ -391,9 +386,9 @@ fn main() -> Result<(), Box<dyn Error>> {
                         posttask_utils::playsound(&sound_path, &sink)?;
                         posttask_utils::finishnotif()?;
                         min_break_ctr = 0;
-                        let (curr_task, items_to_list, weighttable_vec, chosen_assign) =
+                        let (curr_task, items_to_list, weighttable_vec) =
                             choose_task(&task_path, &tags, &initial_tag_weights, &use_due_dates);
-                        posttask_utils::nextupnotif(&chosen_assign)?;
+                        posttask_utils::nextupnotif(&curr_task[1])?;
                         weight_table = WeightTable::new(weighttable_vec);
                         app.current_task = curr_task;
                         app.items = items_to_list;
