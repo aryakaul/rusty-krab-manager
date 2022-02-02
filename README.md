@@ -3,6 +3,7 @@
   <a href="https://travis-ci.com/aryakaul/rusty-krab-manager"><img alt="Build Status" src="https://travis-ci.com/aryakaul/rusty-krab-manager.svg?branch=master"></a> 
   <a href="https://crates.io/crates/rusty-krab-manager"><img alt="Crate Status" src="https://img.shields.io/crates/v/rusty-krab-manager.svg"></a>
   <a href="https://crates.io/crates/rusty-krab-manager"><img alt="Crates.io" src="https://img.shields.io/crates/d/rusty-krab-manager"></a>
+  <a href="https://github.com/aryakaul/rusty-krab-manager/actions/workflows/CI.yml"><img alt="CI" src="https://github.com/aryakaul/rusty-krab-manager/actions/workflows/CI.yml/badge.svg"></a>
 </p>
 
 <h3 align="center"><img src="https://static.tvtropes.org/pmwiki/pub/images/the_spongebob_squarepants_movie_heartwarming.jpg" width="700px"></h3>
