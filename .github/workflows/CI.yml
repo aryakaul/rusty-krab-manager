@@ -63,6 +63,8 @@ jobs:
     name: lint
     runs-on: ubuntu-latest
     steps:
+      - name: install system dependencies
+        run: sudo apt-get install libasound2-dev
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
         with:
