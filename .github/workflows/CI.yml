@@ -11,7 +11,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        build: [msrv, stable, beta, nightly, macos, windows]
+        build: [msrv, stable, beta, nightly, macos]
         include:
           - build: msrv
             os: ubuntu-latest
@@ -63,8 +63,6 @@ jobs:
     name: lint
     runs-on: ubuntu-latest
     steps:
-      - name: install system dependencies
-        run: sudo apt-get install libasound2-dev
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
         with:
@@ -76,20 +74,3 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           args: --all-features --tests --examples
-
-  docs:
-    name: docs
-    runs-on: ubuntu-latest
-    steps:
-      - name: install system dependencies
-        run: sudo apt-get install libasound2-dev
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
-          profile: minimal
-      - uses: actions-rs/cargo@v1
-        with:
-          command: doc
-          args: --no-deps
