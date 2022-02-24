@@ -28,5 +28,5 @@ dirs = "4.0"
 pathsep = "0.1"
 tinytemplate = "1.2.1"
 serde ={ version = "1.0.123", features = ["derive"] }
-clap = "3.0.13"
+clap = "3.1.2"
 notify-rust = "4"
