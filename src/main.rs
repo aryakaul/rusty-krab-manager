@@ -106,7 +106,7 @@ fn load_or_create_configuration_file(args: &ArgMatches) -> io::Result<String> {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let matches = clap::App::new("Rusty-Krab-Manager")
+    let matches = clap::Command::new("Rusty-Krab-Manager")
         .about("Pomodoro inspired TUI task manager")
         .author("Arya K.")
         .version("X.X")

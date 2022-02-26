@@ -21,8 +21,18 @@ pub struct ConfigOptions {
 
 pub fn readin_settings(config_path: &str) -> Result<ConfigOptions, Box<dyn Error>> {
     // Read in configuration
-    let mut settings = config::Config::new();
-    settings.merge(config::File::with_name(config_path))?;
+    //let mut settings = config::Config::new();
+    //settings.merge(config::File::with_name(config_path))?;
+    
+    let settings = config::Config::builder()
+        // Add in `./Settings.toml`
+        .add_source(config::File::with_name(config_path))
+        // Add in settings from the environment (with a prefix of APP)
+        // Eg.. `APP_DEBUG=1 ./target/app` would set the `debug` key
+        .add_source(config::Environment::with_prefix("APP"))
+        .build()
+        .unwrap();
+
 
     // get the paths to the task file and sound file
     let task_path = settings.get("task_filepath")?;
@@ -40,7 +50,9 @@ pub fn readin_settings(config_path: &str) -> Result<ConfigOptions, Box<dyn Error
 
     // get the vector of tags
     let tags = settings.get_array("tags")?;
-    let tags: Vec<String> = tags.into_iter().map(|i| i.into_str().unwrap()).collect();
+    //let tags: Vec<String> = tags.into_iter().map(|i| i.into_str().unwrap()).collect();
+    let tags: Vec<String> = tags.into_iter().map(|i| i.into_string().unwrap()).collect();
+    //let tags: Vec<String> = tags.into_iter().map(|i| i.unwrap()).collect();
     let taglen = tags.len();
 
     // get boolean vector of whether to use due dates or not
