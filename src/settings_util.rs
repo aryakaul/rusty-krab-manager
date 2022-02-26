@@ -23,7 +23,7 @@ pub fn readin_settings(config_path: &str) -> Result<ConfigOptions, Box<dyn Error
     // Read in configuration
     //let mut settings = config::Config::new();
     //settings.merge(config::File::with_name(config_path))?;
-    
+
     let settings = config::Config::builder()
         // Add in `./Settings.toml`
         .add_source(config::File::with_name(config_path))
@@ -32,7 +32,6 @@ pub fn readin_settings(config_path: &str) -> Result<ConfigOptions, Box<dyn Error
         .add_source(config::Environment::with_prefix("APP"))
         .build()
         .unwrap();
-
 
     // get the paths to the task file and sound file
     let task_path = settings.get("task_filepath")?;
