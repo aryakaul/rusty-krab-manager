@@ -1,6 +1,6 @@
 [package]
 name = "rusty-krab-manager"
-version = "1.2.3"
+version = "1.3.0"
 authors = ["luak <arya_kaul@g.harvard.edu>"]
 edition = "2018"
 readme = "README.md"
@@ -19,14 +19,14 @@ exclude = ["example/*"]
 [dependencies]
 rand = "0.8.3"
 chrono = "0.4"
-tui = "0.17"
+tui = "0.18"
 termion = "1.5.6"
-config = "0.12"
+config = "0.13"
 #rodio = { version = "0.15", features = ["symphonia-all"], default-features = false}
 rodio = "0.15" 
 dirs = "4.0"
 pathsep = "0.1"
 tinytemplate = "1.2.1"
 serde ={ version = "1.0.123", features = ["derive"] }
-clap = "3.1.2"
+clap = "3.2.10"
 notify-rust = "4"
