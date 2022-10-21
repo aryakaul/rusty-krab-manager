@@ -11,7 +11,7 @@ use assignment_utils::{
     hashmap_to_taskvector, readin_tasks, taskvector_to_stringvect, turn_assignmentvector_into_pdf,
     update_tagweights,
 };
-use clap::ArgMatches;
+use clap::{ArgMatches, ArgAction};
 use rand_utils::roll_die;
 use rodio::Sink;
 use settings_util::ConfigOptions;
@@ -86,7 +86,7 @@ fn choose_task(
 }
 
 fn load_or_create_configuration_file(args: &ArgMatches) -> io::Result<String> {
-    if let Some(c) = args.value_of("config") {
+    if let Some(c) = args.get_one::<String>("config") {
         println!("Value for config: {}", c);
         Ok(c.to_string())
     } else {
@@ -116,14 +116,14 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .long("config")
                 .value_name("FILE")
                 .help("Path for a config file")
-                .takes_value(true),
+                .action(ArgAction::SetTrue),
         )
         .arg(
             clap::Arg::new("mute")
                 .short('m')
                 .long("mute")
                 .help("Do not play sound after ")
-                .takes_value(true),
+                .action(ArgAction::SetTrue),
         )
         .get_matches();
 
