@@ -71,7 +71,7 @@
 * fixed ALL clippy warnings
 
 ## 1.3.0
-* bumped rodio to v0.15
+* bumped rodio to v0.16
 * bumped clap to v3.2.10
 * LOTS of refactoring courtesy of @danieleades. thanks!
 * added notifications when gauge is complete
