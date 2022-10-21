@@ -82,3 +82,8 @@
 * add 0 to keyboard shortcuts
 * bumped config to v0.13
 * bumped tui to 0.18
+
+## 1.3.1
+* bumped clap to v4.0.18
+* bumped chrono to v0.4.22
+* bumped config to v0.13.2
