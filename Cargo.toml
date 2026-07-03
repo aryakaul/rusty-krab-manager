@@ -17,7 +17,7 @@ exclude = ["example/*"]
 
 
 [dependencies]
-rand = "0.8.3"
+rand = "0.10.2"
 chrono = "0.4"
 tui = "0.18"
 termion = "1.5.6"
