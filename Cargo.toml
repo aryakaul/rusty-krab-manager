@@ -18,7 +18,7 @@ exclude = ["example/*"]
 
 
 [dependencies]
-rand = "0.8.3"
+rand = "0.10.2"
 chrono = { version = "0.4.22", features = ["serde"] }
 ratatui = "0.29"
 crossterm = { version = "0.28", features = ["event-stream"] }
@@ -30,8 +30,8 @@ tokio = { version = "1", features = [
 ] }
 futures = "0.3"
 config = "0.13.2"
-rodio = "0.16"
-dirs = "4.0"
+rodio = "0.22.2"
+dirs = "6"
 pathsep = "0.1"
 tinytemplate = "1.2.1"
 serde ={ version = "1.0.123", features = ["derive"] }

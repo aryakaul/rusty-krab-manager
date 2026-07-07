@@ -6,9 +6,8 @@
 
 #[cfg(not(target_os = "macos"))]
 use notify_rust::Notification;
-use rodio::{Decoder, OutputStream, Sink};
+use rodio::{Decoder, DeviceSinkBuilder, Player};
 use std::fs::File;
-use std::io::BufReader;
 use std::path::PathBuf;
 use std::sync::mpsc::{self, Sender};
 use std::thread;
@@ -28,23 +27,22 @@ pub enum Effect {
 pub fn spawn() -> Sender<Effect> {
     let (tx, rx) = mpsc::channel::<Effect>();
     thread::spawn(move || {
-        let audio = OutputStream::try_default().ok();
+        let audio = DeviceSinkBuilder::open_default_sink().ok();
         for effect in rx {
             match effect {
                 Effect::Notify { summary, body } => show_notification(&summary, &body),
                 Effect::Sound { path, volume } => {
-                    let Some((_stream, handle)) = audio.as_ref() else {
+                    let Some(device) = audio.as_ref() else {
                         continue;
                     };
                     if let Ok(file) = File::open(&path) {
-                        if let Ok(source) = Decoder::new(BufReader::new(file)) {
-                            if let Ok(sink) = Sink::try_new(handle) {
-                                sink.set_volume(volume);
-                                sink.append(source);
-                                // Detach so the sound plays to completion in the
-                                // background without us holding the handle.
-                                sink.detach();
-                            }
+                        if let Ok(source) = Decoder::try_from(file) {
+                            let player = Player::connect_new(device.mixer());
+                            player.set_volume(volume);
+                            player.append(source);
+                            // Detach so the sound plays to completion in the
+                            // background without us holding the player.
+                            player.detach();
                         }
                     }
                 }

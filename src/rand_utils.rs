@@ -2,7 +2,7 @@
 //! cumulative one; `roll_die` samples an index from it. Both tolerate the minor
 //! float drift the pdf builders in `selection` produce, and never panic.
 
-use rand::Rng;
+use rand::RngExt;
 
 // Loose tolerance for "sums to 1.0" checks (here and in config validation):
 // float accumulation in the pdf builders (normalization, weight
@@ -31,8 +31,8 @@ pub fn make_cdf(pdf: &[f64]) -> Vec<f64> {
 // randomly roll a n-sided die weighted to the probabilities
 // given. Return the index of the side that comes up.
 pub fn roll_die(pdf: &[f64]) -> usize {
-    let mut rng = rand::thread_rng();
-    let x = rng.gen::<f64>();
+    let mut rng = rand::rng();
+    let x = rng.random::<f64>();
     let cdf = make_cdf(pdf);
     // The final CDF entry can land just under 1.0 from float accumulation, so a
     // high roll may match nothing; fall back to the last index rather than panic.
