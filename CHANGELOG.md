@@ -87,3 +87,22 @@
 * bumped clap to v4.0.18
 * bumped chrono to v0.4.22
 * bumped config to v0.13.2
+
+## 2.0.0
+* big mongo ooga booga change. 
+* tasks are in toml file at (store_filepath in config, but don't love id impl.)
+* tasks can have subtasks now! 
+* config is always in ~/.config/rusty-krab-manager/ now
+* Spongebob is your manager! goto `[manager]` in config
+    * see new keypresses to launch/chat w/ them
+    * `--no-llm` removes this
+* cleaner bottom UI keypress hint section
+* tasks can recur! when overdue it gets the top
+  selection weight instead of dropping out; marked ↻ in the UI. 
+* added in-TUI task editing (`a`, `d`, `D`)
+* macOS notifications display now (via osascript)
+* `-m/--no-sound` mutes all sounds; missing sound file warns instead of
+  panicking
+* fixed: `-c/--config` was declared as a boolean flag and panicked when used
+* updated stack: tui-rs → ratatui, termion → crossterm, async tokio event
+  loop, edition 2021, MSRV 1.74

@@ -1,8 +1,9 @@
 [package]
 name = "rusty-krab-manager"
-version = "1.3.1"
+version = "2.0.0"
 authors = ["luak <arya_kaul@g.harvard.edu>"]
-edition = "2018"
+edition = "2021"
+rust-version = "1.74"
 readme = "README.md"
 license-file = "./LICENSE"
 description = """
@@ -18,14 +19,29 @@ exclude = ["example/*"]
 
 [dependencies]
 rand = "0.8.3"
-chrono = "0.4.22"
-tui = "0.19"
-termion = "1.5.6"
+chrono = { version = "0.4.22", features = ["serde"] }
+ratatui = "0.29"
+crossterm = { version = "0.28", features = ["event-stream"] }
+tokio = { version = "1", features = [
+	"macros",
+	"rt-multi-thread",
+	"time",
+	"sync",
+] }
+futures = "0.3"
 config = "0.13.2"
-rodio = "0.16" 
+rodio = "0.16"
 dirs = "4.0"
 pathsep = "0.1"
 tinytemplate = "1.2.1"
 serde ={ version = "1.0.123", features = ["derive"] }
+serde_json = "1.0"
+uuid = { version = "1", features = ["v4", "serde"] }
 clap = "4.0.18"
 notify-rust = "4.5.10"
+async-trait = "0.1"
+reqwest = { version = "0.12", default-features = false, features = [
+	"json",
+	"rustls-tls",
+] }
+toml = "0.8"

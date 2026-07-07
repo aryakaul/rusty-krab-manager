@@ -16,7 +16,8 @@ The rusty-krab-manager is a terminal user interface written in Rust designed to 
 
 ### More: \[[Installation](https://github.com/aryakaul/rusty-krab-manager/wiki/Installation)\] \[[Configuration](https://github.com/aryakaul/rusty-krab-manager/wiki/Configuration)\] \[[Usage](https://github.com/aryakaul/rusty-krab-manager/wiki/Usage)\] \[[FAQ](https://github.com/aryakaul/rusty-krab-manager/wiki/FAQ)\]
 
+Note: the wiki describes v1.x. Major breaking changes in v2, I'll remove this note when I completely update the wiki. 
 
-Note: This was my first experience coding in Rust so it is extremely likely there are things that could be done better. As a result, any and all pull requests are welcome!
+2nd Note: This was my first experience coding in Rust so it is extremely likely there are things that could be done better. As a result, any and all pull requests are welcome!
 
-BIG THANKS to [tui-rs](https://github.com/fdehau/tui-rs)
+BIG THANKS to [tui-rs](https://github.com/fdehau/tui-rs) (v1) and its successor [ratatui](https://github.com/ratatui/ratatui) (v2)
