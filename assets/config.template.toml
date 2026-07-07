@@ -1,7 +1,13 @@
 # this is an example configuration
 
-# path to the task file
-task_filepath = "{task_filepath}"
+# path to the single task store (TOML). This is the one human-editable source
+# of truth for your tasks: edit it directly — tasks, subtasks, status, due
+# dates, recurrence — or manage tasks in-app. Add a task by appending a
+# [[tasks]] block and leaving `id` out (the app stamps one on save). Give a
+# task `recur = "3d"` (or "12h"/"2w") to make it recurring: completing it
+# reschedules it instead of finishing it, and it never expires. The file is
+# rewritten on save, so comments you add to it are not preserved.
+store_filepath = "{store_filepath}"
 
 # put tags for each assignment. Order dictates the rest
 #tags = [ "rando-projects", "schoolwork", "personal" ]
@@ -24,6 +30,30 @@ maxno_short_breaks = 2
 # path to notification sound
 file = "{sound_filepath}"
 volume = 0.3
+
+# in-app LLM manager (Phase 2/4). When enabled it updates the current task's
+# subtasks/status/notes via tool-use; it never drives task selection.
+[manager]
+enabled = false
+# Which backend to use:
+#   "claude"   - Anthropic API (needs the ANTHROPIC_API_KEY env var)
+#   "ollama"   - local Ollama server   (preset base_url localhost:11434/v1)
+#   "llamacpp" - local llama.cpp server (preset base_url localhost:8080/v1)
+#   "openai"   - any OpenAI-compatible server (LM Studio, vLLM, LocalAI,
+#   "local"      OpenAI/OpenRouter, …); set base_url below
+provider = "claude"
+# Model name. Optional: defaults per provider (claude-haiku-4-5 for claude,
+# llama3.1 for ollama). For openai/local and LM Studio, set it to the exact
+# id your server serves.
+model = "claude-haiku-4-5"
+# OpenAI-compatible endpoint (ignored for the claude provider). Overrides the
+# provider preset; required for the "openai"/"local" providers. Examples:
+#   Ollama    "http://localhost:11434/v1"
+#   llama.cpp "http://localhost:8080/v1"
+#   LM Studio "http://localhost:1234/v1"
+# base_url = "http://localhost:1234/v1"
+# Auth for the openai-compatible providers is optional and read from the
+# OPENAI_API_KEY env var when set (most local servers don't need it).
 
 # weights for each tag project are broken down by day of the week.
 ## i.e. if you have two tags: ["schoolwork", "personal"] and weights
