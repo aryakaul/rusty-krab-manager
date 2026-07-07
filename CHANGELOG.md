@@ -105,4 +105,4 @@
   panicking
 * fixed: `-c/--config` was declared as a boolean flag and panicked when used
 * updated stack: tui-rs → ratatui, termion → crossterm, async tokio event
-  loop, edition 2021, MSRV 1.74
+  loop, edition 2021, MSRV 1.89

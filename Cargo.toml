@@ -1,9 +1,9 @@
 [package]
 name = "rusty-krab-manager"
 version = "2.0.0"
-authors = ["luak <arya_kaul@g.harvard.edu>"]
+authors = ["luak <contact@arya.casa>"]
 edition = "2021"
-rust-version = "1.74"
+rust-version = "1.89"
 readme = "README.md"
 license-file = "./LICENSE"
 description = """
