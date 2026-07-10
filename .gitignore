@@ -6,3 +6,8 @@
 **/*.rs.bk
 
 .envrc
+
+# Agent session files (see AGENT_BESTPRACTICES.md) and agent scratch
+AGENT*.md
+AGENTS.md
+.superpowers/
