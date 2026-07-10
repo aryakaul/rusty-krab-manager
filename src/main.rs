@@ -3,9 +3,11 @@
 //! (`select!` over keyboard input, a 250ms tick, and off-thread manager
 //! results). All application state and behavior live in [`session::Session`].
 
+mod archive;
 mod default_files;
 mod effects;
 mod manager;
+mod mdstore;
 mod rand_utils;
 mod selection;
 mod session;
@@ -125,12 +127,48 @@ fn build_manager(
     }
 }
 
+// Point the session at a Markdown store, migrating a legacy TOML one
+// (v2.0 tasks.toml) in place on first run.
+fn resolve_store(cfg: &mut settings_util::ConfigOptions) {
+    let path = cfg.store_path.clone();
+    let is_toml = path.extension().is_some_and(|e| e == "toml");
+    let md = if is_toml {
+        path.with_file_name("tasks.md")
+    } else {
+        path.clone()
+    };
+    // Migrate when the configured file is TOML, or when the md file is
+    // missing but a sibling tasks.toml exists.
+    let legacy = if is_toml {
+        path.clone()
+    } else {
+        md.with_file_name("tasks.toml")
+    };
+    if !md.exists() && legacy.exists() {
+        match store::migrate_from_toml(&legacy, &md, &archive::archive_path(&md)) {
+            Ok(summary) => eprintln!("store: {summary}"),
+            Err(e) => eprintln!(
+                "store: migration failed ({e}); your original file is untouched — \
+                 fix it or move it aside and re-run"
+            ),
+        }
+    }
+    if is_toml {
+        eprintln!(
+            "store: note — config store_filepath points at {}; now using {}",
+            path.display(),
+            md.display()
+        );
+    }
+    cfg.store_path = md;
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     let matches = clap::Command::new("Rusty-Krab-Manager")
         .about("Pomodoro inspired TUI task manager")
         .author("Arya K.")
-        .version("X.X")
+        .version(env!("CARGO_PKG_VERSION"))
         .arg(
             clap::Arg::new("config")
                 .short('c')
@@ -158,14 +196,27 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let no_sound = matches.get_flag("no-sound");
     let no_llm = matches.get_flag("no-llm");
     let config = load_or_create_configuration_file(&matches)?;
-    let cfg = settings_util::readin_settings(&config)?;
+    let mut cfg = settings_util::readin_settings(&config)?;
+    resolve_store(&mut cfg);
 
-    // Load the single TOML task store; bail early if there's nothing to work on.
-    let store = Store::load_or_default(&cfg.store_path);
+    // Load the Markdown task store; bail early if there's nothing to work on.
+    let mut store = Store::load_or_default(&cfg.store_path);
+    let mut archive = archive::Archive::load_or_default(&archive::archive_path(&cfg.store_path));
+    // [x] marks checked off while the app was closed are completions:
+    // archive or reschedule them before deciding whether anything is
+    // selectable.
+    if store.process_file_completions(&mut archive) {
+        if let Err(e) = store.save(&cfg.store_path) {
+            eprintln!("warning: could not write task store ({e})");
+        }
+        if let Err(e) = archive.save(&archive::archive_path(&cfg.store_path)) {
+            eprintln!("warning: could not write archive ({e})");
+        }
+    }
     if !store.has_selectable(&cfg.tags) {
         eprintln!(
-            "No selectable tasks found in {}.\nAdd tasks (matching a configured \
-             tag) and try again.",
+            "No selectable tasks found in tasks.md ({}).\nAdd tasks (matching a \
+             configured tag) and try again.",
             cfg.store_path.display()
         );
         exit(1);
@@ -194,6 +245,15 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // Terminal initialization for UI. Mouse capture stays off: nothing
     // consumes mouse events, and capturing them turns every wheel scroll
     // into a stream of redraw wakeups.
+    // Restore the terminal before any panic message prints, so a panic
+    // can't leave the shell in raw mode/alt screen (and invisible).
+    let default_hook = std::panic::take_hook();
+    std::panic::set_hook(Box::new(move |info| {
+        let _ = disable_raw_mode();
+        let _ = execute!(io::stdout(), LeaveAlternateScreen);
+        default_hook(info);
+    }));
+
     enable_raw_mode()?;
     let mut stdout = io::stdout();
     execute!(stdout, EnterAlternateScreen)?;
@@ -201,14 +261,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let mut terminal = Terminal::new(backend)?;
     terminal.hide_cursor()?;
 
-    // async event sources: terminal input + a 250ms tick
-    let mut reader = EventStream::new();
-    let mut ticker = tokio::time::interval(Duration::from_millis(250));
-
     let mut session = Session::new(
         cfg,
         no_sound,
         store,
+        archive,
         fx,
         manager,
         manager_available,
@@ -216,15 +273,28 @@ async fn main() -> Result<(), Box<dyn Error>> {
     );
     session.start();
 
-    // Enter into UI drawing infinite loop
+    let res = run_loop(&mut terminal, &mut session, &mut manager_rx).await;
+
+    // restore the terminal on exit (run_loop errors included)
+    disable_raw_mode()?;
+    execute!(terminal.backend_mut(), LeaveAlternateScreen)?;
+    terminal.show_cursor()?;
+    res
+}
+
+async fn run_loop(
+    terminal: &mut Terminal<CrosstermBackend<io::Stdout>>,
+    session: &mut Session,
+    manager_rx: &mut tokio::sync::mpsc::UnboundedReceiver<ManagerMsg>,
+) -> Result<(), Box<dyn Error>> {
+    let mut reader = EventStream::new();
+    let mut ticker = tokio::time::interval(Duration::from_millis(250));
     loop {
         terminal.draw(|f| session.draw(f))?;
-
-        // keybindings + timer tick + manager results, whichever fires first
         let app_event = tokio::select! {
             maybe_event = reader.next() => match maybe_event {
                 Some(Ok(CEvent::Key(key))) if key.kind == KeyEventKind::Press => {
-                    AppEvent::Key(key.code)
+                    session::map_key(key)
                 }
                 _ => continue,
             },
@@ -234,22 +304,15 @@ async fn main() -> Result<(), Box<dyn Error>> {
             },
             _ = ticker.tick() => AppEvent::Tick,
         };
-
         match app_event {
+            AppEvent::Quit => return Ok(()),
             AppEvent::Key(code) => {
                 if session.handle_key(code) {
-                    break;
+                    return Ok(());
                 }
             }
             AppEvent::Manager(result) => session.handle_manager(result),
             AppEvent::Tick => session.handle_tick(),
         }
     }
-
-    // restore the terminal on exit
-    disable_raw_mode()?;
-    execute!(terminal.backend_mut(), LeaveAlternateScreen)?;
-    terminal.show_cursor()?;
-
-    Ok(())
 }

@@ -334,6 +334,15 @@ fn append_reply(reply: &mut String, text: &str) {
     reply.push_str(text);
 }
 
+// Both backends share a hard request timeout so a hung server can't
+// leave the manager busy forever — the normal error path handles it.
+fn http_client() -> reqwest::Client {
+    reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(120))
+        .build()
+        .unwrap_or_else(|_| reqwest::Client::new())
+}
+
 // Anthropic Claude backend. The API key is read from the environment, never
 // the config file, to keep secrets out of the repo.
 pub struct ClaudeBackend {
@@ -346,7 +355,7 @@ impl ClaudeBackend {
     pub fn new(model: String) -> Result<Self, ManagerError> {
         let api_key = env::var("ANTHROPIC_API_KEY").map_err(|_| ManagerError::MissingApiKey)?;
         Ok(Self {
-            client: reqwest::Client::new(),
+            client: http_client(),
             api_key,
             model,
         })
@@ -516,7 +525,7 @@ pub struct OpenAiBackend {
 impl OpenAiBackend {
     pub fn new(model: String, base_url: String) -> Self {
         Self {
-            client: reqwest::Client::new(),
+            client: http_client(),
             base_url: base_url.trim_end_matches('/').to_string(),
             api_key: env::var("OPENAI_API_KEY").ok().filter(|k| !k.is_empty()),
             model,

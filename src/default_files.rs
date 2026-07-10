@@ -1,6 +1,6 @@
 //! First-run scaffolding. `config_dir` resolves the XDG config directory; on a
 //! fresh install `create` writes a default `config.toml` (from the bundled
-//! template), the notification sound, and an example `tasks.toml` generated from
+//! template), the notification sound, and an example `tasks.md` generated from
 //! the model so the demo store never drifts from the types.
 
 use crate::store::Store;
@@ -30,14 +30,14 @@ pub fn config_dir() -> PathBuf {
 // Create files required for operation if they don't exist, such as:
 // 1. Config      ($CONFIG/rusty-krab-manager/config.toml)
 // 2. "Ocean man" ($CONFIG/rusty-krab-manager/ocean_man.mp3)
-// 3. Task store  ($CONFIG/rusty-krab-manager/tasks.toml)
+// 3. Task store  ($CONFIG/rusty-krab-manager/tasks.md)
 pub fn create() {
     let config_subdir = config_dir();
     std::fs::create_dir_all(&config_subdir).expect("could not create config dir");
 
     let config_filepath = config_subdir.join("config.toml");
     let sound_filepath = config_subdir.join("ocean_man.mp3");
-    let store_filepath = config_subdir.join("tasks.toml");
+    let store_filepath = config_subdir.join("tasks.md");
 
     create_default_file(
         &config_filepath,
@@ -57,13 +57,27 @@ pub fn create() {
             "ocean_man.mp3"
         )),
     );
-    // Seed the single TOML store with a schema demo (subtasks + due dates).
-    create_default_file(&store_filepath, example_store_toml().as_bytes());
+    scaffold_store(&config_subdir);
 }
 
-// An example task store demonstrating the schema (subtasks, due dates,
-// history). Generated from the model so it never drifts from the types.
-fn example_store_toml() -> String {
+// Seed the single Markdown store with a format demo (subtasks + due dates).
+// Don't seed the example store when a legacy tasks.toml is present:
+// the migration (main's resolve_store) must find tasks.md missing,
+// otherwise the example would block it and the user's real tasks
+// would be silently ignored.
+fn scaffold_store(config_subdir: &Path) {
+    if !config_subdir.join("tasks.toml").exists() {
+        create_default_file(
+            &config_subdir.join("tasks.md"),
+            example_store_md().as_bytes(),
+        );
+    }
+}
+
+// An example task store demonstrating the format (sections, subtasks,
+// due dates). Generated from the model so it never drifts from the
+// types.
+fn example_store_md() -> String {
     let mut homestead = Task::new(
         "personal".to_string(),
         "Build a defensible homestead 🏡".to_string(),
@@ -94,9 +108,7 @@ fn example_store_toml() -> String {
         homestead,
     ];
 
-    Store { tasks }
-        .to_toml()
-        .expect("example store should serialize")
+    Store::seed(tasks).to_markdown()
 }
 
 fn create_default_file(filepath: &Path, contents: &[u8]) {
@@ -125,4 +137,28 @@ fn fill_config(data: &DefaultConfigData) -> String {
     let mut template = TinyTemplate::new();
     template.add_template("config", CONFIG_TEMPLATE).unwrap();
     template.render("config", &data).unwrap()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn store_scaffold_skipped_when_legacy_toml_present() {
+        let dir = std::env::temp_dir().join(format!("rkm-scaffold-{}", uuid::Uuid::new_v4()));
+        std::fs::create_dir_all(&dir).unwrap();
+
+        // A legacy tasks.toml blocks the example scaffold so the
+        // migration in main's resolve_store can run.
+        std::fs::write(dir.join("tasks.toml"), "[[tasks]]\ntag=\"t\"\nname=\"a\"\n").unwrap();
+        scaffold_store(&dir);
+        assert!(!dir.join("tasks.md").exists());
+
+        // Without a legacy store, the example is seeded as before.
+        std::fs::remove_file(dir.join("tasks.toml")).unwrap();
+        scaffold_store(&dir);
+        assert!(dir.join("tasks.md").exists());
+
+        std::fs::remove_dir_all(&dir).ok();
+    }
 }

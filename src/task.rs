@@ -1,6 +1,6 @@
 //! The `Task` data model and its serde representation. A task has a tag, name,
 //! optional due date, status, an ordered list of `Subtask`s, and a timestamped
-//! `history` log. This is what the TOML store persists and what the LLM manager
+//! `history` log. This is what the store persists and what the LLM manager
 //! and the UI both read/mutate. `parse_due` / `DUE_FORMAT` define the friendly
 //! `"YYYY-MM-DD HH:MM"` date format used everywhere.
 
@@ -8,7 +8,7 @@ use chrono::{DateTime, Duration, Local, NaiveDateTime, TimeZone};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-// Human-friendly due-date format used across the app and the TOML store.
+// Human-friendly due-date format used across the app and the store.
 pub const DUE_FORMAT: &str = "%Y-%m-%d %H:%M";
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -44,7 +44,9 @@ pub struct Task {
     pub tag: String,
     pub name: String,
     // Optional now: an undated task never goes overdue. Stored as the friendly
-    // DUE_FORMAT string in the TOML store (see `due_fmt`).
+    // DUE_FORMAT string (see `due_fmt`, used by the archive and
+    // legacy-store serde — the live tasks.md store has its own
+    // `@due`/`@every` rendering in mdstore.rs).
     #[serde(default, skip_serializing_if = "Option::is_none", with = "due_fmt")]
     pub due: Option<DateTime<Local>>,
     #[serde(default)]
@@ -62,7 +64,7 @@ pub struct Task {
 
 // Serde adapter for `due`: stores/reads the friendly DUE_FORMAT string
 // ("YYYY-MM-DD HH:MM"), matching what the user types in the add-task popup.
-mod due_fmt {
+pub(crate) mod due_fmt {
     use super::{parse_due, DUE_FORMAT};
     use chrono::{DateTime, Local};
     use serde::{Deserialize, Deserializer, Serializer};
@@ -231,6 +233,18 @@ pub fn parse_due(s: &str) -> Option<DateTime<Local>> {
         .and_then(|naive| Local.from_local_datetime(&naive).single())
 }
 
+// Like `parse_due`, but also accepts a bare "YYYY-MM-DD", meaning end
+// of that day (23:59). Used by the Markdown store's @due annotation.
+pub fn parse_due_flexible(s: &str) -> Option<DateTime<Local>> {
+    let s = s.trim();
+    parse_due(s).or_else(|| {
+        chrono::NaiveDate::parse_from_str(s, "%Y-%m-%d")
+            .ok()
+            .and_then(|d| d.and_hms_opt(23, 59, 0))
+            .and_then(|naive| Local.from_local_datetime(&naive).single())
+    })
+}
+
 // Parse a recurrence interval: a positive number followed by h (hours),
 // d (days), or w (weeks) — e.g. "12h", "3d", "2w". None if invalid.
 pub fn parse_recur(s: &str) -> Option<Duration> {
@@ -313,5 +327,20 @@ mod tests {
         assert!(t.toggle_subtask(1));
         assert!(!t.subtasks[1].done);
         assert!(!t.toggle_subtask(9)); // out of range is a no-op
+    }
+
+    #[test]
+    fn parse_due_flexible_accepts_date_only_as_end_of_day() {
+        let full = parse_due_flexible("2050-01-01 10:00").unwrap();
+        assert_eq!(full, parse_due("2050-01-01 10:00").unwrap());
+
+        let bare = parse_due_flexible("2050-01-01").unwrap();
+        assert_eq!(
+            bare.format("%Y-%m-%d %H:%M").to_string(),
+            "2050-01-01 23:59"
+        );
+        assert_eq!(parse_due_flexible(" 2050-01-01 "), Some(bare));
+        assert!(parse_due_flexible("tomorrow").is_none());
+        assert!(parse_due_flexible("").is_none());
     }
 }

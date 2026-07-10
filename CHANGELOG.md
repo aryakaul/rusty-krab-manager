@@ -106,3 +106,19 @@
 * fixed: `-c/--config` was declared as a boolean flag and panicked when used
 * updated stack: tui-rs → ratatui, termion → crossterm, async tokio event
   loop, edition 2021, MSRV 1.89
+
+## 2.0.1
+- BREAKING: the task store is now a Markdown checklist (`tasks.md`) —
+  `## headings` are tags, `- [ ]` lines are tasks with `@due` /
+  `@every` annotations, indented checkboxes are subtasks. An existing
+  `tasks.toml` is migrated automatically on first run (original kept
+  as `tasks.toml.bak`).
+- Completed tasks and history now live in a machine-side
+  `archive.toml`; the task file stays clean. Checking `[x]` in the
+  file completes a task (recurring tasks reschedule).
+- The app picks up hand edits to `tasks.md` live (within ~250 ms) and
+  never clobbers them: writes are guarded, atomic, and save failures
+  surface in the footer. Unrecognized lines are preserved verbatim.
+- Hardening: panics restore the terminal; Ctrl-C quits (it used to
+  read as `c` — the complete key); manager HTTP calls time out after
+  120 s; `--version` reports the real version.

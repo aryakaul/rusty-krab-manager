@@ -312,7 +312,7 @@ mod tests {
     fn choose_task_picks_the_only_selectable_task() {
         let t = task("school", "thesis");
         let id = t.id;
-        let store = Store { tasks: vec![t] };
+        let store = Store::seed(vec![t]);
         // job is empty, so its weight redistributes and school always wins.
         let sel = choose_task(
             &store,

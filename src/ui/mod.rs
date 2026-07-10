@@ -371,8 +371,18 @@ pub fn draw_gauge(f: &mut Frame, app: &App, area: Rect, view: &TimerView) {
     f.render_widget(gauge, area);
 }
 
-// Draw the persistent one-line keybinding hint bar at the bottom of the screen.
-pub fn draw_footer(f: &mut Frame, area: Rect, manager_available: bool) {
+// Draw the persistent one-line keybinding hint bar at the bottom of the
+// screen — or, while `notice` is set, a transient message in its place
+// (save errors, parse warnings, dropped actions).
+pub fn draw_footer(f: &mut Frame, area: Rect, manager_available: bool, notice: Option<&str>) {
+    if let Some(msg) = notice {
+        let p = Paragraph::new(Line::from(Span::styled(
+            format!(" {msg}"),
+            Style::default().fg(Color::Yellow),
+        )));
+        f.render_widget(p, area);
+        return;
+    }
     let key = Style::default()
         .fg(Color::Yellow)
         .add_modifier(Modifier::BOLD);

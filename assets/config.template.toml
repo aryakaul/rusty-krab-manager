@@ -1,12 +1,12 @@
 # this is an example configuration
 
-# path to the single task store (TOML). This is the one human-editable source
-# of truth for your tasks: edit it directly — tasks, subtasks, status, due
-# dates, recurrence — or manage tasks in-app. Add a task by appending a
-# [[tasks]] block and leaving `id` out (the app stamps one on save). Give a
-# task `recur = "3d"` (or "12h"/"2w") to make it recurring: completing it
-# reschedules it instead of finishing it, and it never expires. The file is
-# rewritten on save, so comments you add to it are not preserved.
+# path to the task store (Markdown). This is the human-editable task
+# list: `## headings` are tags, `- [ ] name` lines are tasks, indented
+# checkboxes are subtasks. Annotate with `@due 2026-01-31 17:00` (time
+# optional) and `@every 3d` (recurring). Check a task off with [x] to
+# complete it — finished tasks move to the sibling archive.toml, which
+# the app maintains for you. Edits are picked up live while the app
+# runs.
 store_filepath = "{store_filepath}"
 
 # put tags for each assignment. Order dictates the rest

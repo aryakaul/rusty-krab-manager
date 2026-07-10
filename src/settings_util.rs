@@ -8,7 +8,7 @@ use std::error::Error;
 use std::path::PathBuf;
 
 pub struct ConfigOptions {
-    // Single human-editable TOML task store. Defaults to <config dir>/tasks.toml.
+    // Single human-editable Markdown task store. Defaults to <config dir>/tasks.md.
     pub store_path: PathBuf,
     pub sound_path: PathBuf,
     pub sound_volume: f64,
@@ -43,11 +43,11 @@ pub fn readin_settings(config_path: &str) -> Result<ConfigOptions, Box<dyn Error
         .add_source(config::Environment::with_prefix("APP"))
         .build()?;
 
-    // The TOML store path (optional; defaults under the config dir).
+    // The Markdown store path (optional; defaults under the config dir).
     let store_path = settings
         .get::<String>("store_filepath")
         .map(PathBuf::from)
-        .unwrap_or_else(|_| crate::default_files::config_dir().join("tasks.toml"));
+        .unwrap_or_else(|_| crate::default_files::config_dir().join("tasks.md"));
 
     // Note: a missing sound *file* is tolerated (the app warns and runs
     // without sound); only a missing `sound.file` config key is an error.
@@ -218,7 +218,7 @@ sun = [0.6, 0.4]
         let cfg = read(&body).unwrap();
         assert_eq!(
             cfg.store_path,
-            crate::default_files::config_dir().join("tasks.toml")
+            crate::default_files::config_dir().join("tasks.md")
         );
     }
 

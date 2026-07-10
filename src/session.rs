@@ -10,6 +10,7 @@
 //! task & pomodoro logic · the LLM manager (message/capture/decompose) · the
 //! startup planning chat.
 
+use crate::archive::{archive_path, Archive};
 use crate::effects::Effect;
 use crate::manager::{self, ChatHistory, ManagerBackend};
 use crate::selection::{choose_task, grouped_to_rows, Selection};
@@ -50,6 +51,19 @@ pub enum AppEvent {
     Key(KeyCode),
     Tick,
     Manager(ManagerMsg),
+    Quit,
+}
+
+// Map a terminal key event to an app event. In raw mode Ctrl-C is not
+// a signal — it arrives as a key. Without this it would read as a
+// plain 'c': the complete-task key.
+pub fn map_key(key: crossterm::event::KeyEvent) -> AppEvent {
+    use crossterm::event::KeyModifiers;
+    if key.modifiers.contains(KeyModifiers::CONTROL) && key.code == KeyCode::Char('c') {
+        AppEvent::Quit
+    } else {
+        AppEvent::Key(key.code)
+    }
 }
 
 // A one-line text editor shared by every input popup: the live buffer plus an
@@ -249,6 +263,10 @@ pub struct Session {
 
     // mutable runtime state
     store: Store,
+    archive: Archive,
+    // Transient footer message (save errors, parse warnings, dropped
+    // actions) with its expiry.
+    notice: Option<(String, Instant)>,
     app: App,
     weight_table: SelectableTable,
     current_id: Option<Uuid>,
@@ -273,11 +291,13 @@ impl Session {
     // ---- construction ----
 
     // Build a session from the loaded config and the already-created runtime
-    // handles (store, effects worker, LLM backend, result channel).
+    // handles (store, archive, effects worker, LLM backend, result channel).
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         cfg: ConfigOptions,
         no_sound: bool,
         store: Store,
+        archive: Archive,
         fx: Sender<Effect>,
         manager: Arc<dyn ManagerBackend>,
         manager_available: bool,
@@ -292,6 +312,8 @@ impl Session {
             manager_available,
             manager_tx,
             store,
+            archive,
+            notice: None,
             app: App::default(),
             weight_table: SelectableTable::new(Vec::new()),
             current_id: None,
@@ -309,6 +331,12 @@ impl Session {
     // Seed the tag counter, roll the first task, and (when the manager is on)
     // open the startup planning offer.
     pub fn start(&mut self) {
+        if !self.store.warnings.is_empty() {
+            self.set_notice(format!(
+                "tasks.md: {} line(s) not understood (kept as-is)",
+                self.store.warnings.len()
+            ));
+        }
         self.app.completed = self.cfg.tags.iter().map(|t| (t.clone(), 0)).collect();
         self.reroll(false);
         if self.manager_available {
@@ -378,16 +406,7 @@ impl Session {
 
     // Append a subtask to the task with `id`, persist, and refresh the display.
     fn add_subtask_to(&mut self, id: Uuid, name: String) {
-        let found = self.store.task_mut(id).is_some_and(|t| {
-            t.add_subtask(name);
-            true
-        });
-        if found {
-            self.persist();
-            self.refresh_current_subtasks();
-            self.refresh_expanded_subs();
-            self.rebuild_task_list();
-        }
+        self.commit(|s, _| s.task_mut(id).map(|t| t.add_subtask(name)).is_some());
     }
 
     // Reload the expanded task's subtask list from the store (it may have
@@ -424,12 +443,9 @@ impl Session {
     fn complete_current(&mut self, id: Uuid) {
         self.record_completion(id);
         self.play_sound();
-        self.store.complete(id);
-        self.persist();
+        self.commit(|s, a| s.complete(id, a));
         if self.current_id == Some(id) {
             self.reroll(false);
-        } else {
-            self.rebuild_task_list();
         }
     }
 
@@ -444,23 +460,77 @@ impl Session {
         else {
             return;
         };
-        let toggled = self
-            .store
-            .task_mut(parent_id)
-            .is_some_and(|t| t.toggle_subtask(sub_index));
-        if toggled {
-            self.persist();
-            self.refresh_expanded_subs();
-            if self.current_id == Some(parent_id) {
-                self.refresh_current_subtasks();
-            }
-            self.rebuild_task_list();
+        self.commit(|s, _| {
+            s.task_mut(parent_id)
+                .is_some_and(|t| t.toggle_subtask(sub_index))
+        });
+    }
+
+    const NOTICE_TTL: Duration = Duration::from_secs(8);
+
+    fn set_notice(&mut self, msg: impl Into<String>) {
+        self.notice = Some((msg.into(), Instant::now() + Self::NOTICE_TTL));
+    }
+
+    // Persist the store + archive. The single place disk writes flow
+    // through; failures surface in the footer instead of vanishing.
+    fn persist(&mut self) {
+        self.store.drain_history(&mut self.archive);
+        if let Err(e) = self.store.save(&self.cfg.store_path) {
+            self.set_notice(format!("⚠ save failed: {e}"));
+        }
+        if let Err(e) = self.archive.save(&archive_path(&self.cfg.store_path)) {
+            self.set_notice(format!("⚠ archive save failed: {e}"));
         }
     }
 
-    // Persist the store to disk. The single place all mutations save through.
-    fn persist(&self) {
-        let _ = self.store.save(&self.cfg.store_path);
+    // Apply a store mutation behind the external-edit write guard: if
+    // tasks.md changed on disk since our last read, reload (re-matching
+    // ids) BEFORE applying, so we never clobber a hand edit. A mutation
+    // whose target vanished in that reload returns false and is dropped
+    // with a notice (spec §3).
+    fn commit(&mut self, apply: impl FnOnce(&mut Store, &mut Archive) -> bool) {
+        if self.store.external_change(&self.cfg.store_path) {
+            self.reload_from_disk();
+        }
+        if apply(&mut self.store, &mut self.archive) {
+            self.persist();
+        } else {
+            self.set_notice("task changed on disk — action dropped");
+        }
+        self.rebuild_task_list();
+        self.refresh_current_subtasks();
+        self.refresh_expanded_subs();
+    }
+
+    // Mirror an external edit of tasks.md into the running session.
+    fn reload_from_disk(&mut self) {
+        let mut fresh = Store::load_or_default(&self.cfg.store_path);
+        fresh.rematch_ids(&self.store);
+        self.store = fresh;
+        if !self.store.warnings.is_empty() {
+            self.set_notice(format!(
+                "tasks.md: {} line(s) not understood (kept as-is)",
+                self.store.warnings.len()
+            ));
+        }
+        // [x] marks typed in the file are completions: archive or
+        // reschedule them, then write the result back. A save failure
+        // here sets a more urgent notice, so it must run after the
+        // warnings notice above to land last and win.
+        if self.store.process_file_completions(&mut self.archive) {
+            self.persist();
+        }
+        self.rebuild_task_list();
+        self.refresh_current_subtasks();
+        self.refresh_expanded_subs();
+        // the current task may have been completed or deleted in the file
+        if self
+            .current_id
+            .is_some_and(|id| self.store.task(id).is_none())
+        {
+            self.reroll(false);
+        }
     }
 
     // Fire-and-forget the completion sound via the effects worker. No-op when
@@ -703,7 +773,12 @@ impl Session {
         }
 
         // persistent keybinding hints along the bottom
-        draw_footer(f, root[1], self.manager_available);
+        draw_footer(
+            f,
+            root[1],
+            self.manager_available,
+            self.notice.as_ref().map(|(m, _)| m.as_str()),
+        );
     }
 
     // ---- key handling ----
@@ -764,9 +839,10 @@ impl Session {
                 InputEvent::Edited => self.input_mode = InputMode::Adding { input, tag },
                 InputEvent::Submitted => match parse_new_task(&input.buffer, &tag) {
                     Ok(task) => {
-                        self.store.add(task);
-                        self.persist();
-                        self.rebuild_task_list();
+                        self.commit(|s, _| {
+                            s.add(task);
+                            true
+                        });
                     }
                     Err(e) => {
                         input.error = Some(e);
@@ -778,13 +854,10 @@ impl Session {
             // ---- delete confirmation ----
             InputMode::ConfirmDelete { id, name } => match code {
                 KeyCode::Char('y') => {
-                    self.store.remove(id);
-                    self.persist();
+                    self.commit(|s, _| s.remove(id));
                     if self.current_id == Some(id) {
                         // we deleted the in-progress task: reroll
                         self.reroll(false);
-                    } else {
-                        self.rebuild_task_list();
                     }
                 }
                 KeyCode::Char('n') | KeyCode::Esc => {}
@@ -1199,24 +1272,17 @@ impl Session {
     // and refresh the affected views.
     fn apply_manager_outcome(&mut self, outcome: manager::ManagerOutcome) {
         let id = outcome.task.id;
-        if let Some(slot) = self.store.task_mut(id) {
-            *slot = outcome.task;
-        }
-        self.persist();
-        self.rebuild_task_list();
-        if self.current_id == Some(id) {
-            self.refresh_current_subtasks();
-        }
-        self.refresh_expanded_subs();
+        self.commit(|s, _| s.task_mut(id).map(|slot| *slot = outcome.task).is_some());
     }
 
     // Persist reviewed captured tasks: add each to the store and refresh.
     fn apply_capture_outcome(&mut self, outcome: manager::CaptureOutcome) {
-        for task in outcome.tasks {
-            self.store.add(task);
-        }
-        self.persist();
-        self.rebuild_task_list();
+        self.commit(|s, _| {
+            for task in outcome.tasks {
+                s.add(task);
+            }
+            true
+        });
     }
 
     // ---- startup planning chat ----
@@ -1329,7 +1395,7 @@ impl Session {
     // A planning-chat turn finished: show the reply and add any captured tasks
     // live (they persist immediately; the transcript is the record).
     fn handle_chat_result(&mut self, result: ChatResult) {
-        let mut added = false;
+        let mut captured: Vec<Task> = Vec::new();
         if let Some(plan) = &mut self.plan {
             plan.busy = false;
             match result {
@@ -1343,8 +1409,7 @@ impl Session {
                     }
                     for task in outcome.captured {
                         plan.added.push(task.name.clone());
-                        self.store.add(task);
-                        added = true;
+                        captured.push(task);
                     }
                 }
                 Err(e) => plan.transcript.push(Turn {
@@ -1353,9 +1418,13 @@ impl Session {
                 }),
             }
         }
-        if added {
-            self.persist();
-            self.rebuild_task_list();
+        if !captured.is_empty() {
+            self.commit(|s, _| {
+                for task in captured {
+                    s.add(task);
+                }
+                true
+            });
         }
     }
 
@@ -1369,6 +1438,17 @@ impl Session {
             if Instant::now() >= deadline {
                 self.input_mode = InputMode::Normal;
             }
+        }
+        // Mirror external edits to tasks.md into the running session.
+        if self.store.external_change(&self.cfg.store_path) {
+            self.reload_from_disk();
+        }
+        if self
+            .notice
+            .as_ref()
+            .is_some_and(|(_, deadline)| Instant::now() >= *deadline)
+        {
+            self.notice = None;
         }
         // The timer is paused while planning (offer or active conversation).
         if self.app.paused || matches!(self.input_mode, InputMode::PlanOffer | InputMode::Planning)
@@ -1445,5 +1525,17 @@ mod tests {
         assert!(parse_new_task("  , 3d", "job").is_err());
         let err = parse_new_task("name, tomorrow", "job").unwrap_err();
         assert!(err.contains("tomorrow"));
+    }
+
+    #[test]
+    fn ctrl_c_maps_to_quit_and_plain_c_stays_a_key() {
+        use crossterm::event::{KeyEvent, KeyModifiers};
+        let ctrl_c = KeyEvent::new(KeyCode::Char('c'), KeyModifiers::CONTROL);
+        assert!(matches!(map_key(ctrl_c), AppEvent::Quit));
+        let plain_c = KeyEvent::new(KeyCode::Char('c'), KeyModifiers::NONE);
+        assert!(matches!(
+            map_key(plain_c),
+            AppEvent::Key(KeyCode::Char('c'))
+        ));
     }
 }
