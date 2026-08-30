@@ -14,7 +14,18 @@ repository = "https://github.com/aryakaul/rusty-krab-manager"
 documentation = "https://github.com/aryakaul/rusty-krab-manager/wiki"
 keywords = ["time-management", "tui", "rusty-krab-manager"]
 categories = ["command-line-utilities"]
-exclude = ["example/*"]
+# Keep agent/process scaffolding out of the published .crate tarball.
+# These are local working files, not part of the shipped program; v2.0.0
+# accidentally packaged them and docs.rs served them publicly.
+exclude = [
+	"example/*",
+	"AGENT*.md",
+	"AGENTS.md",
+	".superpowers/",
+	"docs/superpowers/",
+	".claude/",
+	".envrc",
+]
 
 
 [dependencies]
