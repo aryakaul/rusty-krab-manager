@@ -105,8 +105,21 @@ impl Task {
     }
 
     pub fn minutes_until_due(&self) -> Option<i64> {
-        self.due
-            .map(|d| d.signed_duration_since(Local::now()).num_minutes())
+        self.minutes_until_due_at(Local::now())
+    }
+
+    fn minutes_until_due_at(&self, now: DateTime<Local>) -> Option<i64> {
+        self.due.map(|due| {
+            let remaining = due.signed_duration_since(now);
+            let minutes = remaining.num_minutes();
+            // `num_minutes` truncates toward zero, so a deadline that passed
+            // seconds ago would otherwise still look due in the future.
+            if remaining < Duration::seconds(0) {
+                minutes.min(-1)
+            } else {
+                minutes
+            }
+        })
     }
 
     pub fn is_overdue(&self) -> bool {
@@ -301,6 +314,20 @@ mod tests {
         assert_eq!(t.due_display(), "overdue ↻");
         t.status = Status::Done;
         assert!(!t.is_selectable()); // but Done still wins
+    }
+
+    #[test]
+    fn task_is_overdue_immediately_after_its_deadline() {
+        let now = Local::now();
+        let due = now - Duration::seconds(30);
+        let task = Task::new("work".into(), "submit report".into(), Some(due));
+
+        // Use the injected time as a task-local fake clock for the exact
+        // sub-minute boundary, then verify the wall-clock helpers separately.
+        assert_eq!(task.minutes_until_due_at(now), Some(-1));
+        assert!(task.is_overdue());
+        assert!(!task.is_selectable());
+        assert_eq!(task.due_relative(), "overdue");
     }
 
     #[test]
